@@ -1,0 +1,1336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crown Scan — Crown Collective</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  /* Antique Shop Inspired Palette */
+  --bg: #0D1411; 
+  --surface: rgba(216, 203, 165, 0.03);
+  --surface2: rgba(216, 203, 165, 0.06);
+  --gold: #D8CBA5; 
+  --gold-dim: rgba(216, 203, 165, 0.12);
+  --gold-line: rgba(216, 203, 165, 0.25);
+  --text: #EAE5D9;
+  --muted: #9AA09C;
+  --faint: rgba(216, 203, 165, 0.1);
+  --radius: 16px;
+  --transition: 400ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+html { 
+  background: #040605; 
+  color: var(--text); 
+  font-family: 'DM Sans', sans-serif; 
+  -webkit-font-smoothing: antialiased; 
+}
+
+body { 
+  min-height: 100vh; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center;
+  overflow: hidden; 
+}
+
+/* ── FULL SCREEN FRAMING ── */
+.app-frame {
+  position: absolute;
+  inset: 24px; 
+  background: linear-gradient(to bottom, rgba(13, 20, 17, 0.95), rgba(13, 20, 17, 0.98)), 
+              url('https://images.unsplash.com/photo-1598905624795-0210f845eece?q=80&w=2000&auto=format&fit=crop') center/cover no-repeat;
+  border: 1px solid var(--gold-line);
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; 
+  box-shadow: 0 30px 80px rgba(0,0,0,0.8);
+}
+
+@media(max-width: 640px) {
+  .app-frame { inset: 12px; border-radius: 16px; }
+}
+
+/* ── TOP NAV ── */
+.top-nav-wrap {
+  position: relative;
+  z-index: 20;
+  padding: 40px 0 20px;
+  display: flex;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.pill-nav {
+  display: inline-flex;
+  gap: 32px;
+  border: 1px solid var(--gold-line);
+  border-radius: 100px;
+  padding: 12px 40px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--gold);
+  background: rgba(13, 20, 17, 0.8);
+  backdrop-filter: blur(12px);
+}
+@media(max-width: 640px) {
+  .top-nav-wrap { padding: 24px 0 16px; }
+  .pill-nav { padding: 10px 24px; gap: 20px; }
+}
+.pill-nav span { cursor: pointer; transition: color var(--transition); }
+.pill-nav span:hover { color: #FFF; }
+.pill-nav .active-nav { color: #FFF; }
+
+/* ── SCROLLABLE CONTENT ── */
+.content-scroll {
+  flex: 1;
+  overflow-y: auto;
+  position: relative;
+  z-index: 15;
+  padding: 0 5vw;
+  scrollbar-width: thin;
+  scrollbar-color: var(--gold-line) transparent;
+  display: flex;
+  flex-direction: column;
+}
+.content-scroll::-webkit-scrollbar { width: 4px; }
+.content-scroll::-webkit-scrollbar-track { background: transparent; }
+.content-scroll::-webkit-scrollbar-thumb { background: var(--gold-line); border-radius: 10px; }
+
+.scan-page {
+  max-width: 900px;
+  margin: 0 auto;
+  width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 80px;
+}
+
+/* ── PROGRESS ── */
+.progress-wrap { 
+  margin: 20px auto 40px; 
+  flex-shrink: 0; 
+  width: 100%; 
+  max-width: 600px; 
+}
+.progress-track { display: flex; gap: 3px; height: 1px; background: var(--faint); }
+.progress-fill { height: 1px; background: var(--gold); transition: width .6s cubic-bezier(.4,0,.2,1); width: 0; }
+.step-label { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; }
+.step-label span, .step-label strong { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; }
+.step-label span { color: var(--gold); }
+.step-label strong { color: var(--muted); }
+.back-btn {
+  font-family: 'DM Sans', sans-serif; font-size: 10px; text-transform: uppercase; color: var(--muted);
+  background: none; border: none; cursor: pointer; padding: 0; letter-spacing: 0.15em;
+  display: none; transition: color var(--transition);
+}
+.back-btn:hover { color: var(--gold); }
+.back-btn::before { content: '←  '; opacity: 0.6; }
+
+/* ── STEP PANELS ── */
+.step { display: none; width: 100%; }
+.step.active { display: flex; flex-direction: column; justify-content: center; flex: 1; animation: fadein .5s ease forwards; }
+@keyframes fadein { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Universal Flex States for Centering specific internal panels */
+#phG, #phS, #phR { 
+  display: none; 
+  flex-direction: column; 
+  justify-content: center; 
+  align-items: center; 
+  flex: 1; 
+  width: 100%; 
+}
+
+/* ── INTRO ── */
+.intro-body { 
+  display: grid; 
+  grid-template-columns: 1fr 1fr; 
+  gap: 64px; 
+  align-items: center; 
+  width: 100%;
+}
+@media(max-width: 800px) { 
+  .intro-body { grid-template-columns: 1fr; gap: 40px; text-align: center; } 
+  .intro-steps { align-items: center; }
+  .istep { text-align: left; }
+}
+.intro-left .eyebrow { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); margin-bottom: 20px; }
+.intro-left h1 { font-family: 'Cormorant Garamond', serif; font-size: 56px; line-height: 1.1; font-weight: 300; margin-bottom: 24px; color: var(--gold); }
+@media(max-width: 580px) { .intro-left h1 { font-size: 42px; } }
+.intro-left p { font-size: 14px; color: var(--muted); line-height: 1.8; margin-bottom: 40px; max-width: 440px; }
+@media(max-width: 800px) { .intro-left p { margin: 0 auto 40px; } }
+.intro-steps { display: flex; flex-direction: column; gap: 16px; max-width: 440px; }
+.istep { display: flex; align-items: flex-start; gap: 16px; font-size: 13px; color: var(--text); line-height: 1.6; }
+.istep-n { width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--gold-line); display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--gold); flex-shrink: 0; margin-top: 1px; }
+.intro-right { position: relative; width: 100%; max-width: 400px; margin: 0 auto; }
+.intro-visual { width: 100%; aspect-ratio: 1; background: var(--surface); border-radius: 24px; border: 1px solid var(--gold-line); display: flex; align-items: center; justify-content: center; overflow: hidden; box-shadow: inset 0 0 60px rgba(0,0,0,0.5); }
+.intro-visual svg { opacity: 0.4; }
+
+/* ── QUESTION PANELS ── */
+.question-wrap { text-align: center; max-width: 680px; margin: 0 auto; width: 100%; }
+.q-eyebrow { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); margin-bottom: 16px; display: flex; justify-content: center; }
+.q-title { font-family: 'Cormorant Garamond', serif; font-size: 42px; font-weight: 300; line-height: 1.2; margin-bottom: 16px; color: var(--gold); }
+@media(max-width: 580px) { .q-title { font-size: 32px; } }
+.q-sub { font-size: 13px; color: var(--muted); line-height: 1.7; margin-bottom: 40px; max-width: 500px; margin-left: auto; margin-right: auto; }
+
+/* ── TILES ── */
+.tiles { display: flex; flex-direction: column; gap: 12px; margin: 0 auto 40px; max-width: 540px; width: 100%; }
+.tile { 
+  background: var(--surface); 
+  border: 1px solid var(--gold-line); 
+  border-radius: var(--radius); 
+  padding: 22px 24px; 
+  cursor: pointer; 
+  transition: all var(--transition); 
+  user-select: none; 
+  display: flex; 
+  align-items: flex-start; 
+  gap: 20px; 
+  text-align: left; 
+}
+.tile:hover { border-color: var(--gold); background: var(--surface2); transform: translateY(-2px); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+.tile.sel { border-color: var(--gold); background: var(--gold-dim); }
+.tile-icon { width: 22px; height: 22px; flex-shrink: 0; margin-top: 2px; display: flex; align-items: center; justify-content: center; }
+.tile-text .tth { font-size: 15px; font-weight: 400; color: var(--text); margin-bottom: 6px; letter-spacing: 0.01em; }
+.tile-text .ttb { font-size: 12px; color: var(--muted); line-height: 1.6; }
+
+/* ── GRID TILES (2 col) ── */
+.tile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 0 auto 12px; max-width: 540px; width: 100%; }
+@media(max-width: 480px) { .tile-grid { grid-template-columns: 1fr; } }
+.tile-card { background: var(--surface); border: 1px solid var(--gold-line); border-radius: var(--radius); padding: 24px 16px; cursor: pointer; text-align: center; transition: all var(--transition); user-select: none; }
+.tile-card:hover { border-color: var(--gold); background: var(--surface2); transform: translateY(-2px); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+.tile-card.sel { border-color: var(--gold); background: var(--gold-dim); }
+.tile-card-ic { width: 32px; height: 32px; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; }
+.tile-card-lb { font-size: 13px; font-weight: 400; letter-spacing: 0.05em; color: var(--text); }
+
+/* ── CHIPS ── */
+.chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin: 0 auto 40px; max-width: 540px; }
+.chip { font-size: 12px; padding: 12px 24px; border: 1px solid var(--gold-line); border-radius: 100px; cursor: pointer; color: var(--muted); background: var(--surface); transition: all var(--transition); user-select: none; letter-spacing: 0.02em; }
+.chip:hover { border-color: var(--gold); color: var(--text); background: var(--surface2); transform: translateY(-1px); }
+.chip.sel { border-color: var(--gold); color: var(--bg); background: var(--gold); }
+
+/* ── BUTTONS ── */
+.cta-row { margin-top: 10px; display: flex; flex-direction: column; align-items: center; gap: 20px; }
+.cta { font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 500; letter-spacing: 0.15em; text-transform: uppercase; padding: 18px 48px; background: transparent; color: var(--gold); border: 1px solid var(--gold); border-radius: 100px; cursor: pointer; transition: all var(--transition); min-width: 200px; }
+.cta:hover:not(:disabled) { background: var(--gold); color: var(--bg); box-shadow: 0 10px 20px rgba(216, 203, 165, 0.15); }
+.cta:active:not(:disabled) { transform: scale(0.98); }
+.cta:disabled { border-color: var(--faint); color: var(--faint); cursor: not-allowed; }
+
+.cta-primary {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px; 
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 20px 56px;
+  background: var(--gold);
+  color: var(--bg);
+  border: 1px solid var(--gold);
+  border-radius: 100px;
+  cursor: pointer;
+  transition: all var(--transition);
+  box-shadow: 0 10px 30px rgba(216, 203, 165, 0.2);
+}
+.cta-primary:hover {
+  background: #FFF;
+  border-color: #FFF;
+  box-shadow: 0 15px 40px rgba(216, 203, 165, 0.4);
+  transform: translateY(-3px);
+}
+.cta-primary:active { transform: scale(0.98); }
+
+.back-link { font-family: 'DM Sans', sans-serif; font-size: 10px; color: var(--muted); cursor: pointer; text-decoration: underline; text-underline-offset: 4px; background: none; border: none; padding: 0; display: inline-block; text-transform: uppercase; letter-spacing: 0.15em; transition: color var(--transition); }
+.back-link:hover { color: var(--gold); }
+
+/* ── REDESIGNED PHOTO UPLOAD ── */
+.upload-container { max-width: 500px; margin: 0 auto; width: 100%; }
+.upzone-premium { 
+  border: 1px dashed var(--gold-line); 
+  border-radius: 24px; 
+  background: rgba(216, 203, 165, 0.02);
+  padding: 80px 32px; 
+  text-align: center; 
+  cursor: pointer; 
+  transition: all var(--transition); 
+  position: relative; 
+}
+.upzone-premium::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 24px;
+  border: 1px solid transparent;
+  transition: border-color var(--transition);
+}
+.upzone-premium:hover { 
+  background: rgba(216, 203, 165, 0.05);
+  border-color: transparent;
+  transform: translateY(-2px); 
+}
+.upzone-premium:hover::after {
+  border-color: var(--gold);
+  box-shadow: inset 0 0 40px rgba(0,0,0,0.5);
+}
+.upzone-premium input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; z-index: 10; }
+.up-icon { width: 48px; height: 48px; margin: 0 auto 24px; opacity: 0.8; stroke: var(--gold); }
+.up-label { font-family: 'Cormorant Garamond', serif; font-size: 28px; color: var(--gold); margin-bottom: 12px; font-weight: 300; }
+.up-hint { font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--muted); letter-spacing: 0.05em; text-transform: uppercase; }
+#phPrev { width: 100%; max-height: 480px; object-fit: cover; border-radius: 24px; border: 1px solid var(--gold); display: none; margin: 0 auto; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+.prev-change { display: none; font-family: 'DM Sans', sans-serif; font-size: 10px; color: var(--muted); margin-top: 24px; cursor: pointer; text-decoration: underline; text-underline-offset: 4px; text-transform: uppercase; letter-spacing: 0.15em; transition: color var(--transition); text-align: center; }
+.prev-change:hover { color: var(--gold); }
+
+/* ── PROCESSING ── */
+.scan-center { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 32px; width: 100%; }
+.scan-ring { width: 80px; height: 80px; border-radius: 50%; border: 1px solid var(--gold-line); border-top-color: var(--gold); animation: ring 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite; position: relative; }
+.scan-ring::after { content: ''; position: absolute; inset: 12px; border-radius: 50%; border: 1px solid rgba(216, 203, 165, 0.1); border-top-color: rgba(216, 203, 165, 0.4); animation: ring .8s linear infinite reverse; }
+@keyframes ring { to { transform: rotate(360deg); } }
+.scan-label { font-size: 11px; color: var(--gold); letter-spacing: 0.2em; text-transform: uppercase; text-align: center; min-height: 18px; transition: opacity .3s; }
+
+/* ── RESULTS PREVIEW ── */
+.water-auto { display: inline-flex; align-items: center; gap: 10px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.15em; padding: 10px 20px; background: var(--surface2); border: 1px solid var(--gold-line); border-radius: 100px; color: var(--text); margin-bottom: 32px; }
+.water-dot { width: 6px; height: 6px; background: var(--gold); border-radius: 50%; flex-shrink: 0; }
+.result-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 0 auto 32px; max-width: 600px; width: 100%; }
+@media(max-width: 440px) { .result-cards { grid-template-columns: 1fr; } }
+.rcard { background: var(--surface); border: 1px solid var(--gold-line); border-radius: 20px; padding: 28px 24px; text-align: left; }
+.rcard-lbl { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 16px; }
+.rcard-val { font-family: 'Cormorant Garamond', serif; font-size: 42px; font-weight: 300; color: var(--gold); line-height: 1; margin-bottom: 10px; }
+.rcard-conf { font-size: 11px; color: var(--gold); opacity: 0.8; }
+.rcard-sub { font-size: 12px; color: var(--muted); }
+.rcard-large { grid-column: 1 / -1; }
+
+.tech-details { margin: 16px auto 32px; max-width: 440px; text-align: center; width: 100%; }
+.tech-details summary { font-size: 10px; text-transform: uppercase; letter-spacing: 0.15em; color: var(--muted); cursor: pointer; list-style: none; padding: 8px 0; transition: color var(--transition); }
+.tech-details summary:hover { color: var(--gold); }
+.tech-details summary::before { content: '+ '; opacity: 0.5; }
+.tech-details[open] summary::before { content: '− '; opacity: 0.5; }
+.tech-inner { padding: 24px; background: var(--surface); border: 1px solid var(--gold-line); border-radius: 16px; margin-top: 16px; font-size: 11px; color: var(--muted); line-height: 1.8; text-align: left; }
+.debug-canvas { width: 100%; max-height: 200px; object-fit: contain; border-radius: 8px; border: 1px solid var(--gold-line); display: block; margin-bottom: 16px; }
+
+/* ── FINAL PAGE ── */
+.result-header { padding: 0 0 48px; border-bottom: 1px solid var(--gold-line); text-align: center; }
+.result-header .eyebrow { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); margin-bottom: 20px; }
+.result-header h2 { font-family: 'Cormorant Garamond', serif; font-size: 56px; font-weight: 300; line-height: 1.1; margin-bottom: 24px; color: var(--gold); }
+@media(max-width: 580px) { .result-header h2 { font-size: 40px; } }
+.cid-wrap { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+.cid-seg { font-size: 11px; letter-spacing: 0.05em; padding: 8px 16px; background: var(--gold-dim); border: 1px solid rgba(216, 203, 165, 0.22); border-radius: 8px; color: var(--gold); opacity: 0; transform: translateY(4px); transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.cid-seg.vis { opacity: 1; transform: translateY(0); }
+.excl-note { display: inline-flex; align-items: flex-start; gap: 12px; background: rgba(180, 80, 60, 0.05); border: 1px solid rgba(180, 80, 60, 0.18); border-radius: 12px; padding: 14px 20px; font-size: 12px; color: rgba(210, 130, 110, 0.9); line-height: 1.65; margin-top: 24px; text-align: left; max-width: 600px; }
+
+.result-section { padding: 48px 0 0; }
+.section-label { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); margin-bottom: 32px; display: flex; align-items: center; justify-content: center; gap: 20px; }
+.section-label::before, .section-label::after { content: ''; flex: 1; height: 1px; background: var(--gold-line); max-width: 100px; }
+
+.product-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+@media(max-width: 768px) { .product-grid { grid-template-columns: 1fr; } }
+.pcard, .toolcard { background: var(--surface); border: 1px solid var(--gold-line); border-radius: 20px; padding: 32px 24px; opacity: 0; transform: translateY(12px); transition: all 0.6s ease; text-align: center; }
+.pcard.vis, .toolcard.vis { opacity: 1; transform: translateY(0); }
+.pcard:hover, .toolcard:hover { border-color: var(--gold); transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
+.pcard-brand { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; }
+.pcard-type { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 16px; }
+.pcard-name { font-family: 'Cormorant Garamond', serif; font-size: 24px; color: var(--text); line-height: 1.2; margin-bottom: 16px; }
+.pcard-ingr { font-size: 12px; color: var(--muted); line-height: 1.6; margin-bottom: 20px; }
+.pcard-why { font-size: 12px; color: var(--gold); line-height: 1.7; border-top: 1px solid var(--gold-line); padding-top: 20px; }
+
+.toolcard { display: flex; align-items: flex-start; gap: 24px; text-align: left; }
+.tool-icon-wrap { width: 56px; height: 56px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: var(--surface2); border: 1px solid var(--gold-line); border-radius: 16px; }
+.tool-brand { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gold); margin-bottom: 6px; }
+.tool-name { font-family: 'Cormorant Garamond', serif; font-size: 24px; color: var(--text); margin-bottom: 10px; }
+.tool-why { font-size: 13px; color: var(--muted); line-height: 1.7; }
+
+.subscribe-bar { 
+  margin: 64px auto 0; 
+  max-width: 680px;
+  padding: 48px; 
+  background: linear-gradient(145deg, rgba(216, 203, 165, 0.02) 0%, rgba(216, 203, 165, 0.05) 100%); 
+  border: 1px solid var(--gold-line); 
+  border-radius: 24px; 
+  display: flex; 
+  flex-direction: column;
+  align-items: center; 
+  justify-content: center; 
+  text-align: center; 
+  box-shadow: inset 0 0 40px rgba(0,0,0,0.2); 
+}
+@media(max-width: 640px) { .subscribe-bar { padding: 40px 24px; } }
+</style>
+</head>
+<body>
+
+<div class="app-frame">
+  
+  <div class="top-nav-wrap">
+    <div class="pill-nav">
+      <span class="active-nav">Crown Scan</span>
+    </div>
+  </div>
+
+  <div class="content-scroll">
+    <div class="scan-page">
+
+      <!-- Progress -->
+      <div class="progress-wrap" id="progressWrap" style="display:none">
+        <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+        <div class="step-label">
+          <button class="back-btn" id="backBtn" onclick="goBack()">Back</button>
+          <span id="stepName">Scan</span>
+          <strong id="stepCount"></strong>
+        </div>
+      </div>
+
+      <!-- ── S0: Intro ── -->
+      <div class="step active" id="s0">
+        <div class="intro-body">
+          <div class="intro-left">
+            <div class="eyebrow">Crown Scan</div>
+            <h1>Know your hair.<br>Exactly.</h1>
+            <p>A biological hair profile built from computer vision and 7 precise questions — generating a unique Crown ID that drives every formulation we prescribe you.</p>
+            <div class="intro-steps">
+              <div class="istep"><div class="istep-n">1</div>Upload one dry-hair selfie — no strand photo needed</div>
+              <div class="istep"><div class="istep-n">7</div>Visual questions, tap-to-answer</div>
+              <div class="istep"><div class="istep-n" style="border-color:rgba(216, 203, 165, 0.4)">
+                <svg width="10" height="10" viewBox="0 0 10 10"><circle cx="5" cy="5" r="3.5" fill="none" stroke="var(--gold)" stroke-width="1.2"/><circle cx="5" cy="5" r="1.5" fill="var(--gold)"/></svg>
+              </div>Water hardness auto-detected from your postcode</div>
+            </div>
+            <div class="cta-row" style="margin-top:48px; align-items: flex-start;">
+              <button class="cta" onclick="go(1)">Begin Crown Scan</button>
+            </div>
+          </div>
+          <div class="intro-right">
+            <div class="intro-visual">
+              <svg width="240" height="240" viewBox="0 0 200 200" fill="none">
+                <circle cx="100" cy="100" r="80" stroke="rgba(216, 203, 165, 0.3)" stroke-width="1"/>
+                <circle cx="100" cy="100" r="60" stroke="rgba(216, 203, 165, 0.15)" stroke-width="1" stroke-dasharray="3 4"/>
+                <circle cx="100" cy="100" r="40" stroke="rgba(216, 203, 165, 0.1)" stroke-width="1"/>
+                <path d="M60 100 Q70 70 100 60 Q130 70 140 100 Q130 130 100 140 Q70 130 60 100Z" fill="none" stroke="rgba(216, 203, 165, 0.5)" stroke-width="1"/>
+                <circle cx="100" cy="100" r="6" fill="rgba(216, 203, 165, 0.4)"/>
+                <path d="M100 30 L100 45 M100 155 L100 170 M30 100 L45 100 M155 100 L170 100" stroke="rgba(216, 203, 165, 0.3)" stroke-width="1.2" stroke-linecap="round"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── S1: Photo ── -->
+      <div class="step" id="s1">
+
+        <!-- Guide state -->
+        <div id="phG" style="display: flex;">
+          <div class="question-wrap" style="padding-bottom:0">
+            <div class="q-eyebrow">Step 1 — Biometric Scan</div>
+            <h2 class="q-title">Your photo.</h2>
+            <p class="q-sub" style="margin-bottom:40px">Dry, natural hair in good lighting. One capture is all our vision engine requires.</p>
+          </div>
+          <div class="upload-container">
+            <img id="phPrev" alt="Your hair">
+            <div class="upzone-premium" id="upzone">
+              <input type="file" accept="image/*" id="phInput">
+              <svg class="up-icon" viewBox="0 0 36 36" fill="none"><rect x="3" y="7" width="30" height="22" rx="6" stroke="var(--gold)" stroke-width="1.2"/><circle cx="18" cy="18" r="6" stroke="var(--gold)" stroke-width="1.2"/><circle cx="18" cy="18" r="2" fill="var(--gold)" opacity=".6"/><path d="M13 7 L15 3 H21 L23 7" stroke="var(--gold)" stroke-width="1.2" stroke-linejoin="round"/></svg>
+              <div class="up-label">Upload a photo</div>
+              <div class="up-hint">Tap to browse or drop an image here</div>
+            </div>
+            <div class="prev-change" id="prevChange" onclick="resetPhoto()">Select a different photo</div>
+          </div>
+          <div class="cta-row" style="margin-top:40px">
+            <button class="cta" id="scanBtn" disabled onclick="startScan()">Analyse Pattern</button>
+          </div>
+        </div>
+
+        <!-- Scanning state -->
+        <div id="phS">
+          <div class="scan-center">
+            <div class="scan-ring"></div>
+            <div class="scan-label" id="scanMsg">Extracting geometry…</div>
+          </div>
+        </div>
+
+        <!-- Results state -->
+        <div id="phR">
+          <div class="question-wrap" style="padding-bottom:0">
+            <div class="q-eyebrow">Analysis Complete</div>
+            <h2 class="q-title" style="margin-bottom:24px">Your structural profile.</h2>
+          </div>
+          
+          <div class="water-auto" id="waterPill"><div class="water-dot"></div><span id="waterTxt">Detecting…</span></div>
+          
+          <div class="result-cards" id="rcards">
+            <div class="rcard rcard-large" id="rcCurl">
+              <div class="rcard-lbl">Detected Curl Type</div>
+              <div class="rcard-val" id="rcCurlVal">—</div>
+              <div class="rcard-conf" id="rcCurlConf"></div>
+            </div>
+            <div class="rcard" id="rcWater">
+              <div class="rcard-lbl">Water Zone</div>
+              <div class="rcard-val" style="font-size:28px" id="rcWaterVal">—</div>
+              <div class="rcard-sub" id="rcWaterSub"></div>
+            </div>
+            <div class="rcard" id="rcDens">
+              <div class="rcard-lbl">Strand Density</div>
+              <div class="rcard-val" style="font-size:28px" id="rcDensVal">—</div>
+              <div class="rcard-sub">Estimated</div>
+            </div>
+          </div>
+
+          <!-- Postcode -->
+          <div style="max-width: 400px; width: 100%; margin: 0 auto 32px; text-align: center;">
+            <label style="display:block;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;">Your postcode</label>
+            <input id="postcodeInput" type="text" placeholder="e.g. SW1A or EH1" maxlength="8" autocomplete="postal-code"
+              style="font-family:'DM Sans',sans-serif;font-size:14px;padding:16px 20px;background:var(--surface);
+              border:1px solid var(--gold-line);border-radius:12px;color:var(--text);outline:none;
+              transition:border-color .3s;width:100%;letter-spacing:0.05em;text-align:center;"
+              oninput="onPostcodeInput(this.value)"
+              onfocus="this.style.borderColor='var(--gold)'"
+              onblur="this.style.borderColor='var(--gold-line)'">
+            <div style="font-size:11px;color:var(--faint);margin-top:12px;">
+              Used only to detect water hardness. First 3–4 characters are sufficient.
+            </div>
+          </div>
+
+          <details class="tech-details">
+            <summary>Technical Analysis Details</summary>
+            <div class="tech-inner">
+              <canvas id="debugCv" class="debug-canvas"></canvas>
+              <div id="cvDetail"></div>
+            </div>
+          </details>
+          <div class="cta-row" style="margin-top:20px;">
+            <button class="cta" id="continueBtn" disabled onclick="go(2)">Proceed to Diagnostics</button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ── S2: Q1 Porosity ── -->
+      <div class="step" id="s2">
+        <div class="question-wrap">
+          <div class="q-eyebrow">Question 1 — Porosity</div>
+          <h2 class="q-title">When exposed to water...</h2>
+          <p class="q-sub">How rapidly does your hair structure absorb moisture?</p>
+        </div>
+        <div class="tiles">
+          <div class="tile" onclick="sel(this,'por','Low-P')">
+            <div class="tile-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="var(--gold)" stroke-width="1.2"/><circle cx="10" cy="10" r="3.5" stroke="var(--gold)" stroke-width="1"/></svg></div>
+            <div class="tile-text"><div class="tth">Moisture beads on the surface</div><div class="ttb">Indicative of a sealed cuticle. Hair resists moisture entry and requires lightweight, heat-activated delivery.</div></div>
+          </div>
+          <div class="tile" onclick="sel(this,'por','Normal-P')">
+            <div class="tile-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M2 10 Q6 6 10 10 Q14 14 18 10" stroke="var(--gold)" stroke-width="1.4" stroke-linecap="round"/></svg></div>
+            <div class="tile-text"><div class="tth">Soaks in steadily</div><div class="ttb">A structurally balanced cuticle that responds well to a broad range of formulas.</div></div>
+          </div>
+          <div class="tile" onclick="sel(this,'por','High-P')">
+            <div class="tile-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" fill="rgba(216,203,165,.15)" stroke="var(--gold)" stroke-width="1.2"/></svg></div>
+            <div class="tile-text"><div class="tth">Absorbs immediately, dries fast</div><div class="ttb">An open cuticle prone to rapid moisture loss. Requires rich sealants.</div></div>
+          </div>
+        </div>
+        <div class="cta-row">
+           <button class="cta" id="b2" disabled onclick="go(3)">Proceed</button>
+           <button class="back-link" onclick="go(1)">Return to Scan</button>
+        </div>
+      </div>
+
+      <!-- ── S3: Q2 Strand feel ── -->
+      <div class="step" id="s3">
+        <div class="question-wrap">
+          <div class="q-eyebrow">Question 2 — Thickness</div>
+          <h2 class="q-title">Isolating a single strand...</h2>
+          <p class="q-sub">Rolling a fallen hair between your fingers, it feels:</p>
+        </div>
+        <div class="tiles">
+          <div class="tile" onclick="sel(this,'thick','Fine')">
+            <div class="tile-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><line x1="2" y1="10" x2="18" y2="10" stroke="var(--gold)" stroke-width=".8" stroke-linecap="round"/></svg></div>
+            <div class="tile-text"><div class="tth">Barely perceptible</div><div class="ttb">Fine structure. Prone to being weighed down by rich formulas.</div></div>
+          </div>
+          <div class="tile" onclick="sel(this,'thick','Medium')">
+            <div class="tile-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><line x1="2" y1="10" x2="18" y2="10" stroke="var(--gold)" stroke-width="2" stroke-linecap="round"/></svg></div>
+            <div class="tile-text"><div class="tth">Like a distinct thread</div><div class="ttb">Medium structure. Balanced weight tolerance.</div></div>
+          </div>
+          <div class="tile" onclick="sel(this,'thick','Coarse')">
+            <div class="tile-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><line x1="2" y1="10" x2="18" y2="10" stroke="var(--gold)" stroke-width="3.5" stroke-linecap="round"/></svg></div>
+            <div class="tile-text"><div class="tth">Thick and wiry</div><div class="ttb">Coarse structure. Requires intensive, penetrating hydration.</div></div>
+          </div>
+        </div>
+        <div class="cta-row">
+           <button class="cta" id="b3" disabled onclick="go(4)">Proceed</button>
+           <button class="back-link" onclick="go(2)">Back</button>
+        </div>
+      </div>
+
+      <!-- ── S4: Q3 Scalp ── -->
+      <div class="step" id="s4">
+        <div class="question-wrap">
+          <div class="q-eyebrow">Question 3 — Scalp Environment</div>
+          <h2 class="q-title">Two days post-wash...</h2>
+          <p class="q-sub">Identify the predominant state of your scalp between washes.</p>
+        </div>
+        <div class="tiles">
+          <div class="tile" onclick="sel(this,'scalp','Oily')">
+            <div class="tile-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><ellipse cx="10" cy="10" rx="5.5" ry="7" fill="rgba(216,203,165,.15)" stroke="var(--gold)" stroke-width="1.1"/><path d="M10 3 Q12 7 10 10 Q8 7 10 3Z" fill="var(--gold)" opacity=".4"/></svg></div>
+            <div class="tile-text"><div class="tth">Noticeably oily</div><div class="ttb">High sebum production requiring clarifying agents, not more moisture.</div></div>
+          </div>
+          <div class="tile" onclick="sel(this,'scalp','Dry')">
+            <div class="tile-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 13 Q7 8 10 7 Q13 8 16 13" stroke="var(--gold)" stroke-width="1.2" stroke-linecap="round" fill="none"/><path d="M7 15.5 Q10 12 13 15.5" stroke="var(--gold)" stroke-width="1" stroke-linecap="round" fill="none" opacity=".5"/></svg></div>
+            <div class="tile-text"><div class="tth">Tight or parched</div><div class="ttb">Low sebum requiring hydrating, anti-inflammatory scalp treatments.</div></div>
+          </div>
+          <div class="tile" onclick="sel(this,'scalp','Sensitive')">
+            <div class="tile-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="var(--gold)" stroke-width="1.1"/><circle cx="7" cy="8" r="1" fill="var(--gold)" opacity=".5"/><circle cx="13" cy="8" r="1" fill="var(--gold)" opacity=".5"/></svg></div>
+            <div class="tile-text"><div class="tth">Irritated or flaky</div><div class="ttb">Requires soothing, minimalist, fragrance-free botanicals.</div></div>
+          </div>
+          <div class="tile" onclick="sel(this,'scalp','Balanced')">
+            <div class="tile-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="var(--gold)" stroke-width="1.1"/><circle cx="10" cy="10" r="2.5" fill="rgba(216,203,165,.3)"/></svg></div>
+            <div class="tile-text"><div class="tth">Comfortable equilibrium</div><div class="ttb">Focus remains squarely on treating the hair shaft.</div></div>
+          </div>
+        </div>
+        <div class="cta-row">
+           <button class="cta" id="b4" disabled onclick="go(5)">Proceed</button>
+           <button class="back-link" onclick="go(3)">Back</button>
+        </div>
+      </div>
+
+      <!-- ── S5: Q4 Wet feel ── -->
+      <div class="step" id="s5">
+        <div class="question-wrap">
+          <div class="q-eyebrow">Question 4 — Structural Balance</div>
+          <h2 class="q-title">When fully saturated...</h2>
+          <p class="q-sub">This provides the most accurate proxy for protein/moisture balance available outside a laboratory.</p>
+        </div>
+        <div class="tiles">
+          <div class="tile" onclick="sel(this,'wetfeel','Brittle')">
+            <div class="tile-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M2 10 L8 10" stroke="var(--gold)" stroke-width="1.4" stroke-linecap="round"/><path d="M12 10 L18 10" stroke="var(--gold)" stroke-width="1.4" stroke-linecap="round"/><circle cx="10" cy="10" r="1.2" fill="var(--gold)" opacity=".6"/></svg></div>
+            <div class="tile-text"><div class="tth">Rigid and prone to snapping</div><div class="ttb">Simultaneous protein and moisture depletion. Requires intensive repair.</div></div>
+          </div>
+          <div class="tile" onclick="sel(this,'wetfeel','Balanced')">
+            <div class="tile-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M2 10 Q6 5 10 10 Q14 15 18 10" stroke="var(--gold)" stroke-width="1.4" stroke-linecap="round" fill="none"/></svg></div>
+            <div class="tile-text"><div class="tth">Elastic return</div><div class="ttb">Optimal structural integrity. Maintenance-focused formulations.</div></div>
+          </div>
+          <div class="tile" onclick="sel(this,'wetfeel','Gummy')">
+            <div class="tile-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M2 9 Q6 7 10 10 Q14 13 18 9" stroke="var(--gold)" stroke-width="1.4" stroke-linecap="round" fill="none"/><path d="M8 14.5 L12 14.5" stroke="var(--gold)" stroke-width="1" stroke-linecap="round" opacity=".4"/></svg></div>
+            <div class="tile-text"><div class="tth">Stretches excessively without bouncing back</div><div class="ttb">Classic protein collapse. The internal structure requires rebuilding.</div></div>
+          </div>
+        </div>
+        <div class="cta-row">
+           <button class="cta" id="b5" disabled onclick="go(6)">Proceed</button>
+           <button class="back-link" onclick="go(4)">Back</button>
+        </div>
+      </div>
+
+      <!-- ── S6: Q5 History ── -->
+      <div class="step" id="s6">
+        <div class="question-wrap">
+          <div class="q-eyebrow">Question 5 — Chemical Alteration</div>
+          <h2 class="q-title">Current structural history.</h2>
+          <p class="q-sub">Select all conditions present along your mid-lengths and ends.</p>
+        </div>
+        <div class="chips">
+          <div class="chip" onclick="togChip(this,'Natural')">Virgin / Natural</div>
+          <div class="chip" onclick="togChip(this,'Relaxed')">Chemically Relaxed</div>
+          <div class="chip" onclick="togChip(this,'Colour-Treated')">Colour Deposited</div>
+          <div class="chip" onclick="togChip(this,'Bleached')">Lightened / Bleached</div>
+          <div class="chip" onclick="togChip(this,'Heat-Damaged')">Thermally Damaged</div>
+          <div class="chip" onclick="togChip(this,'Transitioning')">Transitioning Texture</div>
+        </div>
+        <div class="cta-row">
+           <button class="cta" id="b6" disabled onclick="go(7)">Proceed</button>
+           <button class="back-link" onclick="go(5)">Back</button>
+        </div>
+      </div>
+
+      <!-- ── S7: Q6 Protein reaction ── -->
+      <div class="step" id="s7">
+        <div class="question-wrap">
+          <div class="q-eyebrow">Question 6 — Protein Reaction</div>
+          <h2 class="q-title">Post-protein response.</h2>
+          <p class="q-sub">Reflect on treatments rich in keratin, silk, or hydrolysed wheat.</p>
+        </div>
+        <div class="tiles">
+          <div class="tile" onclick="sel(this,'prot','Tolerant')">
+            <div class="tile-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 11 L8 16 L17 5" stroke="var(--gold)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="tile-text"><div class="tth">Fortified and defined</div><div class="ttb">Strongly tolerant to protein supplementation.</div></div>
+          </div>
+          <div class="tile" onclick="sel(this,'prot','Neutral')">
+            <div class="tile-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><line x1="3" y1="10" x2="17" y2="10" stroke="var(--gold)" stroke-width="1.4" stroke-linecap="round"/></svg></div>
+            <div class="tile-text"><div class="tth">Indiscernible change</div><div class="ttb">Neutral biological response.</div></div>
+          </div>
+          <div class="tile" onclick="sel(this,'prot','Sensitive')">
+            <div class="tile-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 4 L16 16 M16 4 L4 16" stroke="var(--gold)" stroke-width="1.4" stroke-linecap="round"/></svg></div>
+            <div class="tile-text"><div class="tth">Unpleasantly stiff or dry</div><div class="ttb">Protein sensitive. Formulas containing active protein will be excluded.</div></div>
+          </div>
+        </div>
+        <div class="cta-row">
+           <button class="cta" id="b7" disabled onclick="go(8)">Proceed</button>
+           <button class="back-link" onclick="go(6)">Back</button>
+        </div>
+      </div>
+
+      <!-- ── S8: Q7 Goal ── -->
+      <div class="step" id="s8">
+        <div class="question-wrap">
+          <div class="q-eyebrow">Question 7 — Aesthetic Priority</div>
+          <h2 class="q-title">Your primary objective.</h2>
+          <p class="q-sub">Select the primary outcome you wish to achieve right now.</p>
+        </div>
+        <div class="tile-grid">
+          <div class="tile-card" onclick="selCard(this,'goal','Moisture')">
+            <div class="tile-card-ic"><svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M14 3 Q19 10 19 16 A5 5 0 0 1 9 16 Q9 10 14 3Z" stroke="var(--gold)" stroke-width="1.3" fill="none" stroke-linejoin="round"/></svg></div>
+            <div class="tile-card-lb">Deep Moisture</div>
+          </div>
+          <div class="tile-card" onclick="selCard(this,'goal','Strength')">
+            <div class="tile-card-ic"><svg width="28" height="28" viewBox="0 0 28 28" fill="none"><rect x="5" y="12" width="18" height="4" rx="2" stroke="var(--gold)" stroke-width="1.3"/><rect x="2" y="9" width="5" height="10" rx="2.5" stroke="var(--gold)" stroke-width="1.3"/><rect x="21" y="9" width="5" height="10" rx="2.5" stroke="var(--gold)" stroke-width="1.3"/></svg></div>
+            <div class="tile-card-lb">Structural Strength</div>
+          </div>
+          <div class="tile-card" onclick="selCard(this,'goal','Definition')">
+            <div class="tile-card-ic"><svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M8 22 Q11 14 14 12 Q17 14 20 22" stroke="var(--gold)" stroke-width="1.3" stroke-linecap="round" fill="none"/><path d="M11 20 Q13 14 14 12 Q15 14 17 20" stroke="var(--gold)" stroke-width="1" stroke-linecap="round" fill="none" opacity=".45"/></svg></div>
+            <div class="tile-card-lb">Pattern Definition</div>
+          </div>
+          <div class="tile-card" onclick="selCard(this,'goal','Scalp Health')">
+            <div class="tile-card-ic"><svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="9" stroke="var(--gold)" stroke-width="1.3"/><path d="M14 5 Q18 10 14 14 Q10 10 14 5Z" fill="rgba(216, 203, 165, 0.2)" stroke="var(--gold)" stroke-width="1"/></svg></div>
+            <div class="tile-card-lb">Scalp Rebalancing</div>
+          </div>
+        </div>
+        <div class="tile-card" onclick="selCard(this,'goal','Growth')" style="margin: 0 auto 12px; max-width: 264px; width: 100%;">
+          <div class="tile-card-ic"><svg width="28" height="28" viewBox="0 0 28 28" fill="none"><line x1="14" y1="24" x2="14" y2="8" stroke="var(--gold)" stroke-width="1.3" stroke-linecap="round"/><path d="M9 13 L14 8 L19 13" stroke="var(--gold)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div class="tile-card-lb">Follicle Growth</div>
+        </div>
+        <div class="cta-row" style="margin-top:32px">
+           <button class="cta" id="b8" disabled onclick="startCurating()">Generate Crown ID</button>
+           <button class="back-link" onclick="go(7)">Back</button>
+        </div>
+      </div>
+
+      <!-- ── S9: Curating ── -->
+      <div class="step" id="s9">
+        <div class="scan-center" style="text-align:center;">
+          <div class="scan-ring" style="margin-bottom:32px"></div>
+          <h2 class="q-title" style="font-size:36px; margin-bottom:12px;">Synthesizing Matches.</h2>
+          <p id="curMsg" style="font-size:11px; letter-spacing:0.2em; text-transform:uppercase; color:var(--muted);">Cross-referencing ingredient matrices…</p>
+        </div>
+      </div>
+
+      <!-- ── S10: Result ── -->
+      <div class="step" id="s10">
+        <div class="result-header">
+          <div class="eyebrow">Your Unique ID</div>
+          <h2>The Curator Box.</h2>
+          <div class="cid-wrap" id="rsegs"></div>
+          <div style="display:flex; justify-content:center;">
+             <div id="exclNote"></div>
+          </div>
+        </div>
+
+        <div class="result-section">
+          <div class="section-label">Selected Formulations</div>
+          <div class="product-grid" id="pGrid"></div>
+        </div>
+
+        <div class="result-section">
+          <div class="section-label">Prescribed Tool</div>
+          <div id="tSlot"></div>
+        </div>
+
+        <div class="subscribe-bar">
+          <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 42px; font-weight: 300; color: var(--gold); margin-bottom: 16px; line-height: 1.1;">Subscribe to your ritual</h3>
+          <p style="font-size: 14px; color: var(--muted); line-height: 1.6; margin-bottom: 32px; max-width: 440px;">Quarterly delivery · Cancel any time · Formulations adapt as your biology shifts</p>
+          <div style="font-family: 'DM Sans', sans-serif; font-size: 16px; color: var(--text); margin-bottom: 24px; letter-spacing: 0.1em; text-transform: uppercase;">£45 / Quarter</div>
+          <button class="cta-primary" onclick="alert('Proceeding to secure checkout.')">Reserve Subscription</button>
+        </div>
+      </div>
+
+    </div><!-- /scan-page -->
+  </div><!-- /content-scroll -->
+
+</div><!-- /app-frame -->
+
+<script>
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// STATE & LOGIC EXACTLY FROM ORIGINAL
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const S = {
+  step:0, scanDone:false,
+  curl:null, density:null, curlVariance:null,
+  por:null, thick:null, scalp:null, wetfeel:null,
+  hist:[], prot:null, goal:null,
+  water:'Hard', waterLabel:'Hard Water', chelating:true,
+  photoImg:null
+};
+
+const STEP_NAMES =['','Scan','Porosity','Structure','Scalp','Balance','History','Protein','Priority','Curation','Results'];
+
+function gaussBlur5(src, W, H) {
+  const k=[1,4,6,4,1, 4,16,24,16,4, 6,24,36,24,6, 4,16,24,16,4, 1,4,6,4,1];
+  const dst=new Float32Array(W*H);
+  for(let y=2;y<H-2;y++) for(let x=2;x<W-2;x++) {
+    let v=0;
+    for(let dy=-2;dy<=2;dy++) for(let dx=-2;dx<=2;dx++)
+      v+=src[(y+dy)*W+(x+dx)]*k[(dy+2)*5+(dx+2)];
+    dst[y*W+x]=v/256;
+  }
+  return dst;
+}
+
+function sobelGrad(gray, W, H) {
+  const mag=new Float32Array(W*H), ang=new Float32Array(W*H);
+  for(let y=1;y<H-1;y++) for(let x=1;x<W-1;x++) {
+    const gx=(gray[(y-1)*W+(x+1)]+2*gray[y*W+(x+1)]+gray[(y+1)*W+(x+1)])
+            -(gray[(y-1)*W+(x-1)]+2*gray[y*W+(x-1)]+gray[(y+1)*W+(x-1)]);
+    const gy=(gray[(y+1)*W+(x-1)]+2*gray[(y+1)*W+x]+gray[(y+1)*W+(x+1)])
+            -(gray[(y-1)*W+(x-1)]+2*gray[(y-1)*W+x]+gray[(y-1)*W+(x+1)]);
+    mag[y*W+x]=Math.sqrt(gx*gx+gy*gy);
+    ang[y*W+x]=Math.atan2(gy,gx);
+  }
+  return {mag,ang};
+}
+
+function detectFaceRegion(pixels, W, H) {
+  const cx0=Math.floor(W*0.15), cx1=Math.floor(W*0.85);
+  const rowW=cx1-cx0;
+  const rawDensity=new Float32Array(H);
+
+  for(let y=0; y<H; y++) {
+    let n=0;
+    for(let x=cx0; x<cx1; x++) {
+      const i=(y*W+x)*4;
+      const r=pixels[i], g=pixels[i+1], b=pixels[i+2];
+      const Y  = 0.299*r    + 0.587*g    + 0.114*b;
+      const Cb =-0.168736*r - 0.331264*g + 0.500*b    + 128;
+      const Cr = 0.500*r    - 0.418688*g - 0.081312*b + 128;
+      if(Y>28 && Cb>=68 && Cb<=138 && Cr>=126 && Cr<=182) n++;
+    }
+    rawDensity[y]=n/rowW;
+  }
+
+  const density=new Float32Array(H);
+  for(let y=4; y<H-4; y++) {
+    let s=0; for(let d=-4;d<=4;d++) s+=rawDensity[y+d]; density[y]=s/9;
+  }
+
+  let maxDens=0, peakY=-1;
+  for(let y=Math.floor(H*0.12); y<Math.floor(H*0.88); y++) {
+    if(density[y]>maxDens) { maxDens=density[y]; peakY=y; }
+  }
+
+  if(maxDens < 0.14 || peakY<0) return null; 
+
+  const THRESH = maxDens * 0.35;
+  let faceTop=peakY;
+  for(let y=peakY; y>=Math.floor(H*0.02); y--) {
+    if(density[y]<THRESH){ faceTop=y+1; break; }
+    if(y===Math.floor(H*0.02)) faceTop=y;
+  }
+
+  let faceBot=peakY;
+  for(let y=peakY; y<Math.floor(H*0.98); y++) {
+    if(density[y]<THRESH){ faceBot=y-1; break; }
+    if(y===Math.floor(H*0.98)-1) faceBot=y;
+  }
+
+  if((faceBot-faceTop)<H*0.06) return null;
+  const faceH=faceBot-faceTop;
+  const estW=Math.round(faceH*0.75);
+  const cx=Math.round(W/2); 
+  const faceLeft=Math.max(0,cx-Math.floor(estW/2));
+  const faceRight=Math.min(W,cx+Math.ceil(estW/2));
+  return {top:faceTop,bottom:faceBot,left:faceLeft,right:faceRight,
+          width:estW,peakY,peakDensity:maxDens,detected:true};
+}
+
+function hairRegionFromFace(face, W, H) {
+  if(!face) return {y0:0, y1:Math.floor(H*0.38), x0:Math.floor(W*0.12), x1:Math.floor(W*0.88), method:'top-38% fallback (no face detected)'};
+  const yStop = face.top - Math.floor(H*0.015);
+  if(yStop < H*0.05) return {y0:0, y1:Math.floor(H*0.40), x0:Math.floor(W*0.10), x1:Math.floor(W*0.90), faceTop:face.top, method:'face-top fallback (face near top)'};
+  return {y0: 0, y1: yStop, x0: Math.floor(W*0.06), x1: Math.floor(W*0.94), faceTop: face.top, method: 'face-detected'};
+}
+
+async function analyseHair(imageEl) {
+  const PW=640, PH=640;
+  const c=document.createElement('canvas'); c.width=PW; c.height=PH;
+  const ctx=c.getContext('2d');
+  ctx.drawImage(imageEl,0,0,PW,PH);
+  const imgData=ctx.getImageData(0,0,PW,PH);
+  const pixels=imgData.data;
+
+  const gray=new Float32Array(PW*PH);
+  for(let i=0;i<PW*PH;i++)
+    gray[i]=0.299*pixels[i*4]+0.587*pixels[i*4+1]+0.114*pixels[i*4+2];
+
+  const blurred=gaussBlur5(gray,PW,PH);
+  const {mag,ang}=sobelGrad(blurred,PW,PH);
+
+  const allMag=[];
+  for(let i=0;i<mag.length;i++) if(mag[i]>0) allMag.push(mag[i]);
+  allMag.sort((a,b)=>a-b);
+  const p90=allMag[Math.floor(allMag.length*0.90)]||1;
+  const magN=new Float32Array(mag.length);
+  for(let i=0;i<mag.length;i++) magN[i]=mag[i]*(100/p90);
+
+  let face=null, faceMethod='YCbCr';
+  if(typeof FaceDetector !== 'undefined') {
+    try {
+      const fd=new FaceDetector({maxDetectedFaces:1,fastMode:true});
+      const results=await fd.detect(c);
+      if(results.length>0) {
+        const b=results[0].boundingBox;
+        face={top:Math.round(b.top), bottom:Math.round(b.top+b.height), left:Math.round(b.left), right:Math.round(b.left+b.width), width:Math.round(b.width), peakY:Math.round(b.top+b.height*0.45), detected:true};
+        faceMethod='FaceDetector-API';
+      }
+    } catch(e) { }
+  }
+  if(!face) {
+    face=detectFaceRegion(pixels,PW,PH);
+    faceMethod=face?'YCbCr-peak':'top-38%-fallback';
+  }
+
+  const region=hairRegionFromFace(face,PW,PH);
+
+  let PATCH=24;
+  if(face && face.width) PATCH=Math.round(face.width/10);
+  else if(face && face.detected) PATCH=Math.round((face.bottom-face.top)*0.85/10);
+  PATCH=Math.max(14,Math.min(38,PATCH));
+
+  const THRESH=38;
+  const MIN_DENS=0.10;
+
+  const fL = face && face.left ? face.left : Math.floor(PW*0.25);
+  const fR = face && face.right ? face.right : Math.floor(PW*0.75);
+  const fT = face ? face.top : Math.floor(PH*0.38);
+  const fB = face ? face.bottom : PH;
+  const maxScanY = face ? Math.min(fB + Math.floor((PH-fB)*0.65), PH) : Math.floor(PH*0.38);
+
+  const variances=[];
+  let edgePx=0,totalPx=0, crownEdgePx=0,crownTotalPx=0, midEdgePx=0,midTotalPx=0;
+
+  for(let y=0; y<maxScanY-PATCH; y+=PATCH) {
+    for(let x=Math.floor(PW*0.04); x<Math.floor(PW*0.96)-PATCH; x+=PATCH) {
+      if(face && face.detected) {
+        const overlapY = (y+PATCH > fT) && (y < fB);
+        const overlapX = (x+PATCH > fL) && (x < fR);
+        if(overlapY && overlapX) continue;
+      }
+      const isCrown = (y+PATCH) <= fT;
+      let sc=0,ss=0,pe=0;
+      for(let dy=0;dy<PATCH;dy++) for(let dx=0;dx<PATCH;dx++) {
+        totalPx++;
+        if(isCrown) crownTotalPx++; else midTotalPx++;
+        const idx=(y+dy)*PW+(x+dx);
+        if(magN[idx]>THRESH){
+          pe++;edgePx++;
+          if(isCrown) crownEdgePx++; else midEdgePx++;
+          sc+=Math.cos(2*ang[idx]);
+          ss+=Math.sin(2*ang[idx]);
+        }
+      }
+      if(pe/(PATCH*PATCH)>=MIN_DENS){
+        const R=Math.sqrt(sc*sc+ss*ss)/pe;
+        variances.push({v:1-R, crown:isCrown});
+      }
+    }
+  }
+
+  if(variances.length<6) {
+    for(let y=0;y<maxScanY-PATCH;y+=PATCH) for(let x=Math.floor(PW*0.04);x<Math.floor(PW*0.96)-PATCH;x+=PATCH) {
+      if(face&&face.detected){const oY=(y+PATCH>fT)&&(y<fB);const oX=(x+PATCH>fL)&&(x<fR);if(oY&&oX)continue;}
+      let sc=0,ss=0,pe=0;
+      const isCrown=(y+PATCH)<=fT;
+      for(let dy=0;dy<PATCH;dy++)for(let dx=0;dx<PATCH;dx++){const idx=(y+dy)*PW+(x+dx);if(magN[idx]>THRESH){pe++;sc+=Math.cos(2*ang[idx]);ss+=Math.sin(2*ang[idx]);}}
+      if(pe>3){const R=Math.sqrt(sc*sc+ss*ss)/pe;variances.push({v:1-R,crown:isCrown});}
+    }
+  }
+
+  const crownEdgeDens = crownTotalPx>0 ? crownEdgePx/crownTotalPx : 0;
+  const midEdgeDens   = midTotalPx>0   ? midEdgePx/midTotalPx     : 0;
+
+  const crownVars = variances.filter(p=>p.crown).map(p=>p.v).sort((a,b)=>a-b);
+  const midVars   = variances.filter(p=>!p.crown).map(p=>p.v).sort((a,b)=>a-b);
+  const allSorted = variances.map(p=>p.v).sort((a,b)=>a-b);
+
+  const midDensRatio = crownEdgeDens>0 ? midEdgeDens/crownEdgeDens : 0;
+  const midHasHair   = midVars.length>=8 && midDensRatio>=0.52;
+  const primaryVars  = midHasHair ? midVars : (crownVars.length>=4 ? crownVars : allSorted);
+  const rawVar       = primaryVars.length>0 ? primaryVars[Math.floor(primaryVars.length/2)] : 0.55;
+
+  const crownMedian  = crownVars.length>0 ? crownVars[Math.floor(crownVars.length/2)] : null;
+  const midMedian    = midVars.length>0   ? midVars[Math.floor(midVars.length/2)]     : null;
+  const edgeDensity  = totalPx>0 ? edgePx/totalPx : 0.10;
+
+  const densPenalty = Math.max(0, 0.11 - edgeDensity) / 0.11;          
+  const varExcess   = Math.max(0, rawVar - 0.60) / 0.40;               
+  const frizzFactor = 1 / (1 + Math.exp(-10 * (densPenalty * varExcess - 0.25))); 
+  const meanVar     = rawVar * (1 - frizzFactor * 0.28);               
+  const frizzCorrected = frizzFactor > 0.3;
+
+  return {meanVar, rawVar, edgeDensity, patchCount:variances.length,
+          crownMedian, midMedian, crownCount:crownVars.length, midCount:midVars.length,
+          crownEdgeDens, midEdgeDens, midDensRatio, midHasHair,
+          PATCH, region, face, canvas:c, faceMethod, frizzCorrected};
+}
+
+function curlTypeFromVariance(v) {
+  if(v < 0.12) return {type:'1',sub:'A',label:'1A',desc:'Straight'};
+  if(v < 0.28) return {type:'1',sub:'B',label:'1B',desc:'Straight'};
+  if(v < 0.45) return {type:'1',sub:'C',label:'1C',desc:'Straight'};
+  if(v < 0.54) return {type:'2',sub:'A',label:'2A',desc:'Wavy'};
+  if(v < 0.62) return {type:'2',sub:'B',label:'2B',desc:'Wavy'};
+  if(v < 0.68) return {type:'2',sub:'C',label:'2C',desc:'Wavy'};
+  if(v < 0.74) return {type:'3',sub:'A',label:'3A',desc:'Curly'};
+  if(v < 0.80) return {type:'3',sub:'B',label:'3B',desc:'Curly'};
+  if(v < 0.86) return {type:'3',sub:'C',label:'3C',desc:'Curly'};
+  if(v < 0.91) return {type:'4',sub:'A',label:'4A',desc:'Coily'};
+  if(v < 0.96) return {type:'4',sub:'B',label:'4B',desc:'Coily'};
+  return              {type:'4',sub:'C',label:'4C',desc:'Coily'};
+}
+
+function densityFromEdge(ed) {
+  if(ed<0.04) return 'Sparse';
+  if(ed<0.10) return 'Medium';
+  if(ed<0.18) return 'Medium-High';
+  return 'High';
+}
+
+function confidenceScore(v, patchCount) {
+  const boundaries=[0.12,0.28,0.45,0.54,0.62,0.68,0.74,0.80,0.86,0.91,0.96];
+  const minDist=Math.min(...boundaries.map(b=>Math.abs(v-b)));
+  const distScore = Math.min(minDist / 0.08, 1.0);
+  const patchScore = Math.min(patchCount / 50, 1.0);
+  const combined = distScore * 0.70 + patchScore * 0.30;
+  return Math.round(55 + combined * 40);
+}
+
+function getWater(pc) {
+  const d=pc.replace(/\s/g,'').substring(0,2).toUpperCase();
+  const HARD=['EC','WC','SW','SE','E1','N1','NW','W1','W2','SG','AL','LU','MK','NN','PE','CB','IP','NR','CM','OX','RG','GU','KT','CR','BR','DA','ME','CT','TN'];
+  const SOFT=['IV','KW','HS','PA','G1','EH','TD','DG','CA','LA','FY','BB','HX','HD','BD','HG','YO','DL','NE'];
+  if(HARD.some(x=>d.startsWith(x))) return {band:'Hard',label:'Hard Water',chelating:true};
+  if(SOFT.some(x=>d.startsWith(x))) return {band:'Soft',label:'Soft Water',chelating:false};
+  return {band:'Moderate',label:'Moderate Water',chelating:false};
+}
+
+const PRODS=[
+  {id:'c1',name:'Chelate & Clarify Shampoo',brand:'Mane Theory',type:'Cleanser',protein:false,weight:'medium',ingr:['EDTA Chelating Agent','Apple Cider Vinegar','Peppermint Extract','Aloe Vera'],sc:{por:{'Low-P':4,'Normal-P':4,'High-P':4},th:{Fine:3,Medium:4,Coarse:4},sc:{Oily:5,Dry:2,Sensitive:2,Balanced:4},wf:{Brittle:3,Balanced:4,Gummy:4},g:{Moisture:3,Strength:3,Definition:3,'Scalp Health':4,Growth:3},w:{Hard:5,Moderate:3,Soft:2},curl:{'1':3,'2':4,'3':4,'4':5},hist:{d:4,v:3}}},
+  {id:'c2',name:'Aloe Cleansing Milk',brand:'Kinfolk Botanicals',type:'Cleanser',protein:false,weight:'light',ingr:['Aloe Vera Juice','Oat Milk','Chamomile Extract','Glycerin'],sc:{por:{'Low-P':5,'Normal-P':4,'High-P':2},th:{Fine:5,Medium:3,Coarse:2},sc:{Oily:2,Dry:4,Sensitive:5,Balanced:3},wf:{Brittle:3,Balanced:4,Gummy:2},g:{Moisture:4,Strength:2,Definition:3,'Scalp Health':4,Growth:3},w:{Hard:2,Moderate:3,Soft:5},curl:{'1':5,'2':4,'3':3,'4':2},hist:{d:3,v:4}}},
+  {id:'c3',name:'Hibiscus Moisture Wash',brand:'Kemi Natural',type:'Cleanser',protein:false,weight:'heavy',ingr:['Hibiscus Flower Extract','Coconut Glucoside','Shea Butter','Baobab Oil'],sc:{por:{'Low-P':2,'Normal-P':3,'High-P':5},th:{Fine:1,Medium:3,Coarse:5},sc:{Oily:2,Dry:5,Sensitive:3,Balanced:3},wf:{Brittle:4,Balanced:3,Gummy:5},g:{Moisture:5,Strength:3,Definition:3,'Scalp Health':3,Growth:3},w:{Hard:3,Moderate:4,Soft:4},curl:{'1':1,'2':2,'3':4,'4':5},hist:{d:4,v:3}}},
+  {id:'c4',name:'Scalp Detox Foam',brand:'Crown Roots',type:'Cleanser',protein:false,weight:'light',ingr:['Salicylic Acid 0.5%','Tea Tree Oil','Neem Extract','Zinc Pyrithione'],sc:{por:{'Low-P':3,'Normal-P':4,'High-P':3},th:{Fine:3,Medium:4,Coarse:3},sc:{Oily:5,Dry:1,Sensitive:4,Balanced:3},wf:{Brittle:3,Balanced:4,Gummy:3},g:{Moisture:2,Strength:2,Definition:2,'Scalp Health':5,Growth:4},w:{Hard:3,Moderate:4,Soft:4},curl:{'1':3,'2':3,'3':4,'4':4},hist:{d:3,v:3}}},
+  {id:'c5',name:'pH-Balance Low-Poo',brand:'Curl Chemistry',type:'Cleanser',protein:false,weight:'light',ingr:['Decyl Glucoside','Citric Acid pH4.5','Glycerin','Marshmallow Root'],sc:{por:{'Low-P':5,'Normal-P':4,'High-P':3},th:{Fine:4,Medium:4,Coarse:3},sc:{Oily:3,Dry:3,Sensitive:4,Balanced:5},wf:{Brittle:3,Balanced:5,Gummy:3},g:{Moisture:4,Strength:3,Definition:4,'Scalp Health':3,Growth:3},w:{Hard:3,Moderate:4,Soft:4},curl:{'1':4,'2':5,'3':4,'4':3},hist:{d:3,v:4}}},
+  {id:'o1',name:'Shea & Mango Deep Conditioner',brand:'Kemi Natural',type:'Conditioner',protein:false,weight:'heavy',ingr:['Shea Butter','Mango Butter','Avocado Oil','Behentrimonium Chloride'],sc:{por:{'Low-P':1,'Normal-P':3,'High-P':5},th:{Fine:1,Medium:3,Coarse:5},sc:{Oily:2,Dry:5,Sensitive:3,Balanced:3},wf:{Brittle:4,Balanced:3,Gummy:5},g:{Moisture:5,Strength:3,Definition:3,'Scalp Health':3,Growth:3},w:{Hard:3,Moderate:3,Soft:4},curl:{'1':1,'2':2,'3':4,'4':5},hist:{d:4,v:3}}},
+  {id:'o2',name:'Hydra-Bond Protein Conditioner',brand:'Mane Theory',type:'Conditioner',protein:true,weight:'medium',ingr:['Hydrolysed Keratin','Wheat Protein','Argan Oil','Panthenol B5'],sc:{por:{'Low-P':2,'Normal-P':3,'High-P':5},th:{Fine:3,Medium:4,Coarse:4},sc:{Oily:3,Dry:4,Sensitive:3,Balanced:4},wf:{Brittle:5,Balanced:3,Gummy:1},g:{Moisture:3,Strength:5,Definition:3,'Scalp Health':3,Growth:3},w:{Hard:3,Moderate:3,Soft:3},curl:{'1':2,'2':3,'3':4,'4':5},hist:{d:5,v:2}}},
+  {id:'o3',name:'Lightweight Curl Milk',brand:'Kinfolk Botanicals',type:'Conditioner',protein:false,weight:'light',ingr:['Aloe Vera Juice','Rice Water','Arrowroot Powder','Jojoba Oil'],sc:{por:{'Low-P':5,'Normal-P':4,'High-P':2},th:{Fine:5,Medium:4,Coarse:2},sc:{Oily:3,Dry:4,Sensitive:4,Balanced:4},wf:{Brittle:3,Balanced:5,Gummy:2},g:{Moisture:4,Strength:2,Definition:5,'Scalp Health':3,Growth:3},w:{Hard:3,Moderate:4,Soft:4},curl:{'1':3,'2':5,'3':4,'4':2},hist:{d:3,v:4}}},
+  {id:'o4',name:'Aloe & Glycerin Moisture Boost',brand:'Crown Roots',type:'Conditioner',protein:false,weight:'medium',ingr:['Aloe Barbadensis Leaf','Vegetable Glycerin','Sunflower Oil','Vitamin E'],sc:{por:{'Low-P':3,'Normal-P':5,'High-P':3},th:{Fine:3,Medium:5,Coarse:3},sc:{Oily:3,Dry:4,Sensitive:5,Balanced:5},wf:{Brittle:3,Balanced:5,Gummy:3},g:{Moisture:5,Strength:2,Definition:3,'Scalp Health':4,Growth:4},w:{Hard:3,Moderate:4,Soft:4},curl:{'1':3,'2':4,'3':5,'4':3},hist:{d:3,v:4}}},
+  {id:'o5',name:'Protein-Free Butter Mask',brand:'Curl Chemistry',type:'Conditioner',protein:false,weight:'heavy',ingr:['Cupuacu Butter','Murumuru Butter','Castor Oil','Cetearyl Alcohol'],sc:{por:{'Low-P':2,'Normal-P':3,'High-P':5},th:{Fine:1,Medium:3,Coarse:5},sc:{Oily:2,Dry:5,Sensitive:3,Balanced:3},wf:{Brittle:3,Balanced:3,Gummy:5},g:{Moisture:5,Strength:2,Definition:3,'Scalp Health':3,Growth:3},w:{Hard:3,Moderate:3,Soft:4},curl:{'1':1,'2':2,'3':4,'4':5},hist:{d:4,v:3}}},
+  {id:'t1',name:'Bond Rebuild Treatment',brand:'Kemi Natural',type:'Treatment',protein:true,weight:'medium',ingr:['Hydrolysed Silk','Maleic Acid','Ceramides','Biotin'],sc:{por:{'Low-P':2,'Normal-P':3,'High-P':5},th:{Fine:3,Medium:4,Coarse:4},sc:{Oily:3,Dry:4,Sensitive:3,Balanced:4},wf:{Brittle:5,Balanced:2,Gummy:2},g:{Moisture:3,Strength:5,Definition:2,'Scalp Health':3,Growth:3},w:{Hard:3,Moderate:3,Soft:3},curl:{'1':2,'2':3,'3':4,'4':5},hist:{d:5,v:1}}},
+  {id:'t2',name:'Scalp Therapy Serum',brand:'Mane Theory',type:'Treatment',protein:false,weight:'light',ingr:['Niacinamide 5%','Caffeine Extract','Pumpkin Seed Oil','Zinc'],sc:{por:{'Low-P':4,'Normal-P':4,'High-P':3},th:{Fine:4,Medium:4,Coarse:3},sc:{Oily:4,Dry:5,Sensitive:5,Balanced:3},wf:{Brittle:3,Balanced:4,Gummy:3},g:{Moisture:3,Strength:3,Definition:2,'Scalp Health':5,Growth:5},w:{Hard:3,Moderate:3,Soft:3},curl:{'1':3,'2':3,'3':4,'4':4},hist:{d:3,v:4}}},
+  {id:'t3',name:'Jojoba & Chebe Growth Oil',brand:'Crown Roots',type:'Treatment',protein:false,weight:'medium',ingr:['Jojoba Oil','Chebe Powder','Jamaican Black Castor Oil','Rosemary Extract'],sc:{por:{'Low-P':3,'Normal-P':4,'High-P':4},th:{Fine:3,Medium:4,Coarse:5},sc:{Oily:2,Dry:5,Sensitive:4,Balanced:4},wf:{Brittle:4,Balanced:4,Gummy:3},g:{Moisture:4,Strength:3,Definition:2,'Scalp Health':4,Growth:5},w:{Hard:3,Moderate:3,Soft:3},curl:{'1':2,'2':2,'3':4,'4':5},hist:{d:4,v:4}}},
+  {id:'t4',name:'Curl Definition Gel-Cream',brand:'Curl Chemistry',type:'Treatment',protein:false,weight:'medium',ingr:['Flaxseed Gel','Glycerin','Cetyl Alcohol','Panthenol B5'],sc:{por:{'Low-P':4,'Normal-P':5,'High-P':3},th:{Fine:3,Medium:5,Coarse:3},sc:{Oily:3,Dry:3,Sensitive:4,Balanced:5},wf:{Brittle:3,Balanced:5,Gummy:3},g:{Moisture:3,Strength:3,Definition:5,'Scalp Health':3,Growth:3},w:{Hard:3,Moderate:4,Soft:4},curl:{'1':2,'2':4,'3':5,'4':3},hist:{d:2,v:5}}},
+  {id:'t5',name:'Moisture Lock Leave-In',brand:'Kinfolk Botanicals',type:'Treatment',protein:false,weight:'light',ingr:['Glycerin','Aloe Vera','Sweet Almond Oil','Agave Extract'],sc:{por:{'Low-P':4,'Normal-P':4,'High-P':3},th:{Fine:5,Medium:4,Coarse:2},sc:{Oily:3,Dry:4,Sensitive:4,Balanced:4},wf:{Brittle:3,Balanced:4,Gummy:3},g:{Moisture:5,Strength:2,Definition:4,'Scalp Health':3,Growth:3},w:{Hard:3,Moderate:4,Soft:5},curl:{'1':3,'2':4,'3':5,'4':3},hist:{d:4,v:3}}}
+];
+
+const TOOLS=[
+  {name:'Wide-Tooth Seamless Detangling Comb',brand:'Crown Collective',icon:'comb',why:'Zero-seam construction eliminates snagging on curl formations. Detangle wet, conditioned hair without mechanical breakage.',best:['4A','4B','4C','3C','High-P']},
+  {name:'Microfibre Hair Turban',brand:'Crown Collective',icon:'turban',why:'Reduces frizz-causing friction during drying by up to 50% vs a standard towel. Essential for defined curl preservation.',best:['3A','3B','3C','2C','High-P','Normal-P','Definition']},
+  {name:'Boar Bristle Scalp Massage Brush',brand:'Crown Collective',icon:'brush',why:'Stimulates microcirculation at the follicle, distributes natural sebum along the shaft, and lifts product build-up without stripping.',best:['Oily','Dry','Scalp Health','Growth']},
+  {name:'Satin-Lined Sleeping Bonnet',brand:'Crown Collective',icon:'bonnet',why:'Eliminates cotton pillowcase friction overnight — the single biggest cause of frizz, breakage, and moisture loss between wash days.',best:['4A','4B','4C','Brittle','High-P','Coily']}
+];
+
+function toolIconSVG(t) {
+  if(t==='comb') return `<svg width="24" height="24" viewBox="0 0 22 22" fill="none"><path d="M3 8 L19 8 L19 14 L3 14Z" stroke="var(--gold)" stroke-width="1.2"/><line x1="7" y1="8" x2="7" y2="5" stroke="var(--gold)" stroke-width="1.2" stroke-linecap="round"/><line x1="11" y1="8" x2="11" y2="5" stroke="var(--gold)" stroke-width="1.2" stroke-linecap="round"/><line x1="15" y1="8" x2="15" y2="5" stroke="var(--gold)" stroke-width="1.2" stroke-linecap="round"/></svg>`;
+  if(t==='turban') return `<svg width="24" height="24" viewBox="0 0 22 22" fill="none"><path d="M4 13 Q4 7 11 6 Q18 7 18 13" stroke="var(--gold)" stroke-width="1.2"/><path d="M4 13 Q7 17 11 17 Q15 17 18 13" stroke="var(--gold)" stroke-width="1.2"/><path d="M11 6 Q13 9 11 12 Q9 9 11 6Z" fill="rgba(216,203,165,.25)" stroke="var(--gold)" stroke-width="1"/></svg>`;
+  if(t==='brush') return `<svg width="24" height="24" viewBox="0 0 22 22" fill="none"><rect x="7" y="3" width="8" height="10" rx="4" stroke="var(--gold)" stroke-width="1.2"/><line x1="11" y1="13" x2="11" y2="19" stroke="var(--gold)" stroke-width="1.2" stroke-linecap="round"/><line x1="8" y1="19" x2="14" y2="19" stroke="var(--gold)" stroke-width="1.2" stroke-linecap="round"/></svg>`;
+  return `<svg width="24" height="24" viewBox="0 0 22 22" fill="none"><path d="M6 4 Q4 7 4 11 Q4 17 11 19 Q18 17 18 11 Q18 7 16 4Z" stroke="var(--gold)" stroke-width="1.2"/><path d="M11 4 Q13.5 8 11 12 Q8.5 8 11 4Z" fill="rgba(216,203,165,.2)" stroke="var(--gold)" stroke-width="1"/></svg>`;
+}
+
+function scoreProduct(p) {
+  if(S.prot==='Sensitive' && p.protein) return -999;
+  const get=(o,k)=>(o&&o[k]!=null)?o[k]:3;
+
+  const curlCat = S.curl ? S.curl.charAt(0) : null;
+  const curlScore = (p.sc.curl && curlCat) ? (p.sc.curl[curlCat]||3) : 3;
+
+  const damaged = S.hist.some(v=>['Bleached','Relaxed','Heat-Damaged','Colour-Treated'].includes(v));
+  const virgin  = S.hist.includes('Natural') && !damaged;
+  const histScore = p.sc.hist ? (damaged ? p.sc.hist.d : virgin ? p.sc.hist.v : 3) : 3;
+
+  const densMap = {Sparse:1, Medium:3, 'Medium-High':4, High:5};
+  const userDens = densMap[S.density] || 3;
+  const densScore = p.weight==='heavy' ? userDens : p.weight==='light' ? (6-userDens) : 3; 
+
+  return curlScore  * 0.16 +
+         get(p.sc.por,S.por)     * 0.22 +
+         get(p.sc.wf,S.wetfeel)  * 0.18 +
+         get(p.sc.th,S.thick)    * 0.12 +
+         get(p.sc.g,S.goal)      * 0.11 +
+         get(p.sc.w,S.water)     * 0.10 +
+         histScore               * 0.06 +
+         get(p.sc.sc,S.scalp)    * 0.04 +
+         densScore               * 0.01;
+}
+
+function pickProducts() {
+  return['Cleanser','Conditioner','Treatment'].map(type=>{
+    const pool=PRODS.filter(p=>p.type===type).map(p=>({...p,score:scoreProduct(p)})).sort((a,b)=>b.score-a.score);
+    return pool[0]&&pool[0].score>-999?pool[0]:null;
+  }).filter(Boolean);
+}
+
+function pickTool() {
+  const prof=[S.curl,S.scalp,S.goal,S.wetfeel,S.por].filter(Boolean);
+  let best=TOOLS[0],bestN=0;
+  TOOLS.forEach(t=>{const n=t.best.filter(k=>prof.includes(k)).length;if(n>bestN){bestN=n;best=t;}});
+  return best;
+}
+
+function whyProduct(p) {
+  const parts=[];
+  const pm={'Low-P':'lightweight delivery for your sealed cuticle', 'Normal-P':'mid-weight formula for your balanced cuticle', 'High-P':'heavy sealants to lock moisture into your open cuticle'};
+  if(pm[S.por]) parts.push(pm[S.por]);
+  const wm={'Brittle':'addresses your brittle wet-feel (protein + moisture depletion)', 'Balanced':'maintains your healthy protein/moisture balance', 'Gummy':'targets your gummy wet-feel (protein structure deficiency)'};
+  if(wm[S.wetfeel]) parts.push(wm[S.wetfeel]);
+  const curlCat=S.curl?S.curl.charAt(0):null;
+  if(curlCat==='4'&&p.weight==='heavy') parts.push('rich formula suited to your coily pattern');
+  if(curlCat==='1'&&p.weight==='light') parts.push('lightweight formula for straight hair');
+  if(curlCat==='3'&&p.type==='Treatment'&&p.ingr.some(i=>/gel|glycerin|definition/i.test(i))) parts.push('curl-definition ingredients for your ringlet pattern');
+  const damaged=S.hist.some(v=>['Bleached','Relaxed','Heat-Damaged','Colour-Treated'].includes(v));
+  if(damaged&&p.protein) parts.push('protein complex to repair chemically compromised bonds');
+  if(damaged&&!p.protein&&p.weight==='heavy') parts.push('intensive moisture for your chemically treated hair');
+  if(S.chelating&&p.ingr.some(i=>/edta|citric|chelat/i.test(i))) parts.push('chelating agents to counter your hard water mineral buildup');
+  return parts.length ? parts[0].charAt(0).toUpperCase()+parts[0].slice(1)+ (parts.length>1 ? '. '+parts.slice(1).join('. ')+'.' : '.') : '';
+}
+
+// ── UI NAVIGATION ──
+function go(n) {
+  document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
+  document.getElementById('s'+n).classList.add('active');
+  S.step=n;
+  const pw=document.getElementById('progressWrap');
+  if(n===0){pw.style.display='none'; return;}
+  pw.style.display='block';
+  const pct=Math.round(((n-1)/8)*100);
+  document.getElementById('progressFill').style.width=Math.min(pct,100)+'%';
+  document.getElementById('stepName').textContent=STEP_NAMES[n]||'';
+  document.getElementById('stepCount').textContent=n<=8?`${n} of 8`:'';
+  
+  const backBtn=document.getElementById('backBtn');
+  if(backBtn) backBtn.style.display=(n>=2&&n<=8)?'block':'none';
+  
+  document.querySelector('.content-scroll').scrollTo({top:0,behavior:'smooth'});
+}
+
+function goBack() {
+  const n=S.step;
+  if(n>2) { go(n-1); return; }
+  if(n===2) {
+    document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
+    document.getElementById('s1').classList.add('active');
+    S.step=1;
+    document.getElementById('phG').style.display='none';
+    document.getElementById('phS').style.display='none';
+    document.getElementById('phR').style.display='flex';
+    document.getElementById('progressFill').style.width='0%';
+    document.getElementById('stepName').textContent='Scan';
+    document.getElementById('stepCount').textContent='1 of 8';
+    const backBtn=document.getElementById('backBtn');
+    if(backBtn) backBtn.style.display='none';
+    document.querySelector('.content-scroll').scrollTo({top:0,behavior:'smooth'});
+  }
+}
+
+function sel(el,field,val) {
+  el.closest('.tiles').querySelectorAll('.tile').forEach(t=>t.classList.remove('sel'));
+  el.classList.add('sel'); S[field]=val;
+  const b=el.closest('.step').querySelector('.cta[id^=b]');
+  if(b)b.disabled=false;
+}
+function selCard(el,field,val) {
+  document.querySelectorAll('#s8 .tile-card').forEach(t=>t.classList.remove('sel'));
+  el.classList.add('sel'); S[field]=val;
+  document.getElementById('b8').disabled=false;
+}
+function togChip(el,val) {
+  el.classList.toggle('sel');
+  S.hist=el.classList.contains('sel')?[...S.hist,val]:S.hist.filter(v=>v!==val);
+  document.getElementById('b6').disabled=S.hist.length===0;
+}
+
+// ── PHOTO & SCANNING ──
+document.getElementById('phInput').addEventListener('change',function(e){
+  const file=e.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    const img=new Image();
+    img.onload=()=>{
+      S.photoImg=img;
+      document.getElementById('phPrev').src=ev.target.result;
+      document.getElementById('phPrev').style.display='block';
+      document.getElementById('upzone').style.display='none';
+      document.getElementById('prevChange').style.display='block';
+      document.getElementById('scanBtn').disabled=false;
+    };
+    img.src=ev.target.result;
+  };
+  reader.readAsDataURL(file);
+});
+
+function onPostcodeInput(val) {
+  const clean = val.replace(/\s/g,'').toUpperCase();
+  if(clean.length >= 2) {
+    const w = getWater(clean);
+    S.water = w.band; S.waterLabel = w.label; S.chelating = w.chelating;
+    document.getElementById('waterTxt').textContent = w.label;
+    document.getElementById('rcWaterVal').textContent = w.band;
+    document.getElementById('rcWaterSub').textContent = w.chelating ? 'Chelating agents prescribed' : 'Standard formulas';
+    document.getElementById('continueBtn').disabled = false;
+  } else {
+    document.getElementById('continueBtn').disabled = true;
+    document.getElementById('waterTxt').textContent = 'Awaiting Postcode…';
+    document.getElementById('rcWaterVal').textContent = '—';
+    document.getElementById('rcWaterSub').textContent = 'Enter below to detect';
+  }
+}
+
+function resetPhoto() {
+  S.photoImg=null;
+  document.getElementById('phPrev').style.display='none';
+  document.getElementById('upzone').style.display='block';
+  document.getElementById('prevChange').style.display='none';
+  document.getElementById('scanBtn').disabled=true;
+  document.getElementById('phInput').value='';
+}
+
+const scanMsgs=['Reading biological geometry…','Measuring structural variance…','Detecting natural properties…','Mapping final profile…'];
+
+function startScan() {
+  document.getElementById('phG').style.display='none';
+  document.getElementById('phS').style.display='flex';
+  const msg=document.getElementById('scanMsg');
+  let i=0;
+  const iv=setInterval(()=>{
+    msg.style.opacity=0;
+    setTimeout(()=>{msg.textContent=scanMsgs[Math.min(i,scanMsgs.length-1)];msg.style.opacity=1;},200);
+    i++;
+    if(i>=scanMsgs.length){clearInterval(iv);runCVAnalysis();}
+  },800);
+}
+
+function startCurating() {
+  go(9);
+  const msg=document.getElementById('curMsg');
+  const msgs=['Isolating algorithms…','Scoring ingredient matrix…','Finalising prescription…'];
+  let i=0;
+  const iv=setInterval(()=>{
+    msg.textContent=msgs[Math.min(i,msgs.length-1)]; i++;
+    if(i>=msgs.length){clearInterval(iv);setTimeout(buildResult,800);}
+  },800);
+}
+
+function drawDebugOverlay(raw) {
+  const dbg=document.getElementById('debugCv');
+  if(!raw||!raw.canvas) return;
+  const src=raw.canvas, W=src.width, H=src.height;
+  dbg.width=W; dbg.height=H;
+  const ctx=dbg.getContext('2d');
+  ctx.drawImage(src,0,0);
+  ctx.strokeStyle='rgba(216, 203, 165,.4)'; ctx.lineWidth=1.5;
+  ctx.setLineDash([3,3]); ctx.strokeRect(2,2,W-4,H-4); ctx.setLineDash([]);
+  if(raw.face&&raw.face.detected) {
+    const f=raw.face;
+    const fL=f.left||Math.floor(W*0.25), fR=f.right||Math.floor(W*0.75);
+    ctx.fillStyle='rgba(200,60,60,0.22)';
+    ctx.fillRect(fL,f.top,fR-fL,f.bottom-f.top);
+    ctx.setLineDash([4,3]); ctx.strokeStyle='rgba(200,80,80,0.55)'; ctx.lineWidth=1.2;
+    ctx.strokeRect(fL,f.top,fR-fL,f.bottom-f.top); ctx.setLineDash([]);
+    ctx.fillStyle='rgba(200,80,80,0.75)'; ctx.font='bold 11px system-ui';
+    ctx.fillText('face excluded',fL+6,f.top+14);
+    if(f.top>14){ctx.fillStyle='rgba(216, 203, 165,.75)';ctx.font='bold 11px system-ui';ctx.fillText('crown',6,f.top-6);}
+    if(f.bottom<H-12){ctx.fillStyle='rgba(130,200,130,.75)';ctx.font='bold 11px system-ui';ctx.fillText('mid-length',6,f.bottom+14);}
+    ctx.setLineDash([5,3]); ctx.strokeStyle='rgba(216, 203, 165,.5)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(0,f.top); ctx.lineTo(W,f.top); ctx.stroke(); ctx.setLineDash([]);
+  } else {
+    ctx.fillStyle='rgba(216, 203, 165,.6)'; ctx.font='bold 11px system-ui';
+    ctx.fillText('analysed (no face detected)',6,H-8);
+  }
+}
+
+function showScanResult(ct,dens,conf,raw) {
+  document.getElementById('phS').style.display='none';
+  document.getElementById('phR').style.display='flex';
+  document.getElementById('rcCurlVal').textContent=ct.label;
+  document.getElementById('rcCurlConf').textContent=`${conf}% Confidence`;
+  document.getElementById('rcDensVal').textContent=dens;
+  
+  S.water='Hard'; S.waterLabel='Hard Water'; S.chelating=true;
+  document.getElementById('waterTxt').textContent='Awaiting Postcode…';
+  document.getElementById('rcWaterVal').textContent='—';
+  document.getElementById('rcWaterSub').textContent='Enter below to detect';
+  drawDebugOverlay(raw);
+  
+  const confLabel=conf>=80?'High':conf>=65?'Moderate':'Low';
+  const faceNote=raw.face?`${raw.faceMethod||'detected'} · hairline ~row ${raw.face.top} · `:`No face detected · `;
+  const patchNote=`Patch ${raw.PATCH||24}px`+(raw.face&&raw.face.width?' (face-calibrated)':'');
+  const frizzNote=raw.frizzCorrected?` · <span style="color:rgba(220,150,80,.8)">frizz correction applied (raw ${raw.rawVar!=null?raw.rawVar.toFixed(3):'?'})</span>`:'';
+  const crownNote=raw.crownMedian!=null?`Crown: <strong style="color:var(--text)">${raw.crownMedian.toFixed(3)}</strong> (${raw.crownCount}p)`:'';
+  const midNote=raw.midMedian!=null?`Mid: <strong style="color:rgba(130,200,130,.9)">${raw.midMedian.toFixed(3)}</strong> (${raw.midCount}p)`:'';
+  const primaryNote=raw.midHasHair
+    ?`<span style="color:rgba(130,200,130,.8)">← mid-length primary (ratio ${raw.midDensRatio!=null?raw.midDensRatio.toFixed(2):'?'})</span>`
+    :raw.midCount>=8
+    ?`<span style="color:rgba(220,150,80,.8)">← crown primary (mid rejected: ratio ${raw.midDensRatio!=null?raw.midDensRatio.toFixed(2):'?'} < 0.52)</span>`
+    :`<span style="color:rgba(216, 203, 165,.5)">← crown primary (short hair)</span>`;
+  document.getElementById('cvDetail').innerHTML=
+    `<strong style="color:var(--gold);font-size:11px;text-transform:uppercase;letter-spacing:.1em">CV Analysis</strong> · `+
+    `<span style="color:rgba(216, 203, 165,.5)">${raw.region?raw.region.method:''}</span><br>`+
+    `${faceNote}${patchNote}<br>`+
+    `${[crownNote,midNote].filter(Boolean).join(' · ')} ${primaryNote}<br>`+
+    `Variance: <strong style="color:var(--text)">${raw.meanVar.toFixed(3)}</strong>${frizzNote} `+
+    `<span style="color:rgba(216, 203, 165,.38)">(1A<0.12 · 1C<0.45 · 2B<0.54 · 3A<0.68 · 4A<0.91)</span><br>`+
+    `Patches: <strong style="color:var(--text)">${raw.patchCount}</strong> · `+
+    `Edge density: <strong style="color:var(--text)">${(raw.edgeDensity*100).toFixed(1)}%</strong> · `+
+    `Confidence: <strong style="color:var(--text)">${confLabel} (${conf}%)</strong>`;
+  S.scanDone=true;
+}
+
+async function runCVAnalysis() {
+  await new Promise(r=>setTimeout(r,400));
+  let result;
+  if(S.photoImg){
+    try { result=await analyseHair(S.photoImg); }
+    catch(e){ result={meanVar:0.55,rawVar:0.55,edgeDensity:0.12,patchCount:10,PATCH:24,faceMethod:'error-fallback',frizzCorrected:false,crownMedian:null,midMedian:null,crownCount:0,midCount:0,crownEdgeDens:0,midEdgeDens:0,midDensRatio:0,midHasHair:false,region:{y0:0,y1:240,x0:64,x1:576,method:'error-fallback'},face:null,canvas:null}; }
+  } else {
+    result={meanVar:0.55,rawVar:0.55,edgeDensity:0.12,patchCount:10,PATCH:24,faceMethod:'no-photo',frizzCorrected:false,crownMedian:null,midMedian:null,crownCount:0,midCount:0,crownEdgeDens:0,midEdgeDens:0,midDensRatio:0,midHasHair:false,region:{y0:0,y1:240,x0:64,x1:576,method:'no-photo'},face:null,canvas:null};
+  }
+  const ct=curlTypeFromVariance(result.meanVar);
+  const dens=densityFromEdge(result.edgeDensity);
+  const conf=confidenceScore(result.meanVar,result.patchCount);
+  S.curl=ct.label; S.density=dens; S.curlVariance=result.meanVar;
+  setTimeout(()=>showScanResult(ct,dens,conf,result),300);
+}
+
+function buildResult() {
+  go(10);
+  const pm={'Low-P':'Low Porosity','Normal-P':'Normal Porosity','High-P':'High Porosity'};
+  const wm={'Brittle':'Brittle Wet-Feel','Balanced':'Elastic Wet-Feel','Gummy':'Protein-Deficient'};
+  const ptm={'Tolerant':'Protein-Tolerant','Neutral':'Protein-Neutral','Sensitive':'Protein-Sensitive'};
+  const segs=[S.curl,pm[S.por],S.thick,S.scalp?S.scalp+' Scalp':'',wm[S.wetfeel],S.hist[0]||'Natural',S.waterLabel.split(' ')[0],ptm[S.prot],S.goal].filter(Boolean);
+  const rs=document.getElementById('rsegs');
+  rs.innerHTML=segs.map((s,i)=>`<div class="cid-seg" id="seg${i}">${s}</div>`).join('');
+  segs.forEach((_,i)=>setTimeout(()=>document.getElementById('seg'+i).classList.add('vis'),i*120+150));
+  if(S.prot==='Sensitive')
+    document.getElementById('exclNote').innerHTML=`<div class="excl-note"><svg width="16" height="16" viewBox="0 0 14 14" fill="none" style="flex-shrink:0;margin-top:2px"><path d="M7 2 L12.5 11.5 H1.5Z" stroke="currentColor" stroke-width="1.2" fill="none"/><line x1="7" y1="6" x2="7" y2="9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><circle cx="7" cy="10.5" r=".6" fill="currentColor"/></svg>Protein-sensitive flag active — all protein-forward formulas have been excluded from your match pool.</div>`;
+  const prods=pickProducts();
+  const pg=document.getElementById('pGrid');
+  pg.innerHTML='';
+  prods.forEach((p,i)=>{
+    const d=document.createElement('div');d.className='pcard';
+    d.innerHTML=`<div class="pcard-brand">${p.brand}</div><div class="pcard-type">${p.type}</div><div class="pcard-name">${p.name}</div><div class="pcard-ingr">${p.ingr.join(' · ')}</div><div class="pcard-why">${whyProduct(p)}</div>`;
+    pg.appendChild(d);
+    setTimeout(()=>d.classList.add('vis'),segs.length*100+i*150+400);
+  });
+  const tool=pickTool();
+  const ts=document.getElementById('tSlot');
+  const delay=segs.length*100+prods.length*150+600;
+  ts.innerHTML=`<div class="toolcard" id="tc"><div class="tool-icon-wrap">${toolIconSVG(tool.icon)}</div><div><div class="tool-brand">${tool.brand}</div><div class="tool-name">${tool.name}</div><div class="tool-why">${tool.why}</div></div></div>`;
+  setTimeout(()=>document.getElementById('tc').classList.add('vis'),delay);
+}
+</script>
+</body>
+</html>
