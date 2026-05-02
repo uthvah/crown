@@ -4,13 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Crown Scan — Crown Collective</title>
+
+<!-- ── MACHINE LEARNING IMPORTS ── -->
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/face-detection"></script>
+
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@300;400;500;600&display=swap');
 
 *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  /* Antique Shop Inspired Palette */
   --bg: #0D1411; 
   --surface: rgba(216, 203, 165, 0.03);
   --surface2: rgba(216, 203, 165, 0.06);
@@ -140,7 +144,6 @@ body {
 .step.active { display: flex; flex-direction: column; justify-content: center; flex: 1; animation: fadein .5s ease forwards; }
 @keyframes fadein { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
 
-/* Universal Flex States for Centering specific internal panels */
 #phG, #phS, #phR { 
   display: none; 
   flex-direction: column; 
@@ -151,18 +154,8 @@ body {
 }
 
 /* ── INTRO ── */
-.intro-body { 
-  display: grid; 
-  grid-template-columns: 1fr 1fr; 
-  gap: 64px; 
-  align-items: center; 
-  width: 100%;
-}
-@media(max-width: 800px) { 
-  .intro-body { grid-template-columns: 1fr; gap: 40px; text-align: center; } 
-  .intro-steps { align-items: center; }
-  .istep { text-align: left; }
-}
+.intro-body { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; width: 100%; }
+@media(max-width: 800px) { .intro-body { grid-template-columns: 1fr; gap: 40px; text-align: center; } .intro-steps { align-items: center; } .istep { text-align: left; } }
 .intro-left .eyebrow { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); margin-bottom: 20px; }
 .intro-left h1 { font-family: 'Cormorant Garamond', serif; font-size: 56px; line-height: 1.1; font-weight: 300; margin-bottom: 24px; color: var(--gold); }
 @media(max-width: 580px) { .intro-left h1 { font-size: 42px; } }
@@ -184,19 +177,7 @@ body {
 
 /* ── TILES ── */
 .tiles { display: flex; flex-direction: column; gap: 12px; margin: 0 auto 40px; max-width: 540px; width: 100%; }
-.tile { 
-  background: var(--surface); 
-  border: 1px solid var(--gold-line); 
-  border-radius: var(--radius); 
-  padding: 22px 24px; 
-  cursor: pointer; 
-  transition: all var(--transition); 
-  user-select: none; 
-  display: flex; 
-  align-items: flex-start; 
-  gap: 20px; 
-  text-align: left; 
-}
+.tile { background: var(--surface); border: 1px solid var(--gold-line); border-radius: var(--radius); padding: 22px 24px; cursor: pointer; transition: all var(--transition); user-select: none; display: flex; align-items: flex-start; gap: 20px; text-align: left; }
 .tile:hover { border-color: var(--gold); background: var(--surface2); transform: translateY(-2px); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
 .tile.sel { border-color: var(--gold); background: var(--gold-dim); }
 .tile-icon { width: 22px; height: 22px; flex-shrink: 0; margin-top: 2px; display: flex; align-items: center; justify-content: center; }
@@ -226,26 +207,9 @@ body {
 .cta:disabled { border-color: var(--faint); color: var(--faint); cursor: not-allowed; }
 
 .cta-primary {
-  font-family: 'DM Sans', sans-serif;
-  font-size: 12px; 
-  font-weight: 600;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  padding: 20px 56px;
-  background: var(--gold);
-  color: var(--bg);
-  border: 1px solid var(--gold);
-  border-radius: 100px;
-  cursor: pointer;
-  transition: all var(--transition);
-  box-shadow: 0 10px 30px rgba(216, 203, 165, 0.2);
+  font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; padding: 20px 56px; background: var(--gold); color: var(--bg); border: 1px solid var(--gold); border-radius: 100px; cursor: pointer; transition: all var(--transition); box-shadow: 0 10px 30px rgba(216, 203, 165, 0.2);
 }
-.cta-primary:hover {
-  background: #FFF;
-  border-color: #FFF;
-  box-shadow: 0 15px 40px rgba(216, 203, 165, 0.4);
-  transform: translateY(-3px);
-}
+.cta-primary:hover { background: #FFF; border-color: #FFF; box-shadow: 0 15px 40px rgba(216, 203, 165, 0.4); transform: translateY(-3px); }
 .cta-primary:active { transform: scale(0.98); }
 
 .back-link { font-family: 'DM Sans', sans-serif; font-size: 10px; color: var(--muted); cursor: pointer; text-decoration: underline; text-underline-offset: 4px; background: none; border: none; padding: 0; display: inline-block; text-transform: uppercase; letter-spacing: 0.15em; transition: color var(--transition); }
@@ -253,33 +217,10 @@ body {
 
 /* ── REDESIGNED PHOTO UPLOAD ── */
 .upload-container { max-width: 500px; margin: 0 auto; width: 100%; }
-.upzone-premium { 
-  border: 1px dashed var(--gold-line); 
-  border-radius: 24px; 
-  background: rgba(216, 203, 165, 0.02);
-  padding: 80px 32px; 
-  text-align: center; 
-  cursor: pointer; 
-  transition: all var(--transition); 
-  position: relative; 
-}
-.upzone-premium::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 24px;
-  border: 1px solid transparent;
-  transition: border-color var(--transition);
-}
-.upzone-premium:hover { 
-  background: rgba(216, 203, 165, 0.05);
-  border-color: transparent;
-  transform: translateY(-2px); 
-}
-.upzone-premium:hover::after {
-  border-color: var(--gold);
-  box-shadow: inset 0 0 40px rgba(0,0,0,0.5);
-}
+.upzone-premium { border: 1px dashed var(--gold-line); border-radius: 24px; background: rgba(216, 203, 165, 0.02); padding: 80px 32px; text-align: center; cursor: pointer; transition: all var(--transition); position: relative; }
+.upzone-premium::after { content: ''; position: absolute; inset: 0; border-radius: 24px; border: 1px solid transparent; transition: border-color var(--transition); }
+.upzone-premium:hover { background: rgba(216, 203, 165, 0.05); border-color: transparent; transform: translateY(-2px); }
+.upzone-premium:hover::after { border-color: var(--gold); box-shadow: inset 0 0 40px rgba(0,0,0,0.5); }
 .upzone-premium input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; z-index: 10; }
 .up-icon { width: 48px; height: 48px; margin: 0 auto 24px; opacity: 0.8; stroke: var(--gold); }
 .up-label { font-family: 'Cormorant Garamond', serif; font-size: 28px; color: var(--gold); margin-bottom: 12px; font-weight: 300; }
@@ -347,17 +288,10 @@ body {
 .tool-why { font-size: 13px; color: var(--muted); line-height: 1.7; }
 
 .subscribe-bar { 
-  margin: 64px auto 0; 
-  max-width: 680px;
-  padding: 48px; 
+  margin: 64px auto 0; max-width: 680px; padding: 48px; 
   background: linear-gradient(145deg, rgba(216, 203, 165, 0.02) 0%, rgba(216, 203, 165, 0.05) 100%); 
-  border: 1px solid var(--gold-line); 
-  border-radius: 24px; 
-  display: flex; 
-  flex-direction: column;
-  align-items: center; 
-  justify-content: center; 
-  text-align: center; 
+  border: 1px solid var(--gold-line); border-radius: 24px; 
+  display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; 
   box-shadow: inset 0 0 40px rgba(0,0,0,0.2); 
 }
 @media(max-width: 640px) { .subscribe-bar { padding: 40px 24px; } }
@@ -448,7 +382,7 @@ body {
         <div id="phS">
           <div class="scan-center">
             <div class="scan-ring"></div>
-            <div class="scan-label" id="scanMsg">Extracting geometry…</div>
+            <div class="scan-label" id="scanMsg">Initializing Neural Network…</div>
           </div>
         </div>
 
@@ -508,6 +442,7 @@ body {
 
       </div>
 
+      <!-- ── S2 TO S10: UNCHANGED ── -->
       <!-- ── S2: Q1 Porosity ── -->
       <div class="step" id="s2">
         <div class="question-wrap">
@@ -529,12 +464,8 @@ body {
             <div class="tile-text"><div class="tth">Absorbs immediately, dries fast</div><div class="ttb">An open cuticle prone to rapid moisture loss. Requires rich sealants.</div></div>
           </div>
         </div>
-        <div class="cta-row">
-           <button class="cta" id="b2" disabled onclick="go(3)">Proceed</button>
-           <button class="back-link" onclick="go(1)">Return to Scan</button>
-        </div>
+        <div class="cta-row"><button class="cta" id="b2" disabled onclick="go(3)">Proceed</button><button class="back-link" onclick="go(1)">Return to Scan</button></div>
       </div>
-
       <!-- ── S3: Q2 Strand feel ── -->
       <div class="step" id="s3">
         <div class="question-wrap">
@@ -543,90 +474,36 @@ body {
           <p class="q-sub">Rolling a fallen hair between your fingers, it feels:</p>
         </div>
         <div class="tiles">
-          <div class="tile" onclick="sel(this,'thick','Fine')">
-            <div class="tile-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><line x1="2" y1="10" x2="18" y2="10" stroke="var(--gold)" stroke-width=".8" stroke-linecap="round"/></svg></div>
-            <div class="tile-text"><div class="tth">Barely perceptible</div><div class="ttb">Fine structure. Prone to being weighed down by rich formulas.</div></div>
-          </div>
-          <div class="tile" onclick="sel(this,'thick','Medium')">
-            <div class="tile-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><line x1="2" y1="10" x2="18" y2="10" stroke="var(--gold)" stroke-width="2" stroke-linecap="round"/></svg></div>
-            <div class="tile-text"><div class="tth">Like a distinct thread</div><div class="ttb">Medium structure. Balanced weight tolerance.</div></div>
-          </div>
-          <div class="tile" onclick="sel(this,'thick','Coarse')">
-            <div class="tile-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><line x1="2" y1="10" x2="18" y2="10" stroke="var(--gold)" stroke-width="3.5" stroke-linecap="round"/></svg></div>
-            <div class="tile-text"><div class="tth">Thick and wiry</div><div class="ttb">Coarse structure. Requires intensive, penetrating hydration.</div></div>
-          </div>
+          <div class="tile" onclick="sel(this,'thick','Fine')"><div class="tile-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><line x1="2" y1="10" x2="18" y2="10" stroke="var(--gold)" stroke-width=".8" stroke-linecap="round"/></svg></div><div class="tile-text"><div class="tth">Barely perceptible</div><div class="ttb">Fine structure. Prone to being weighed down by rich formulas.</div></div></div>
+          <div class="tile" onclick="sel(this,'thick','Medium')"><div class="tile-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><line x1="2" y1="10" x2="18" y2="10" stroke="var(--gold)" stroke-width="2" stroke-linecap="round"/></svg></div><div class="tile-text"><div class="tth">Like a distinct thread</div><div class="ttb">Medium structure. Balanced weight tolerance.</div></div></div>
+          <div class="tile" onclick="sel(this,'thick','Coarse')"><div class="tile-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><line x1="2" y1="10" x2="18" y2="10" stroke="var(--gold)" stroke-width="3.5" stroke-linecap="round"/></svg></div><div class="tile-text"><div class="tth">Thick and wiry</div><div class="ttb">Coarse structure. Requires intensive, penetrating hydration.</div></div></div>
         </div>
-        <div class="cta-row">
-           <button class="cta" id="b3" disabled onclick="go(4)">Proceed</button>
-           <button class="back-link" onclick="go(2)">Back</button>
-        </div>
+        <div class="cta-row"><button class="cta" id="b3" disabled onclick="go(4)">Proceed</button><button class="back-link" onclick="go(2)">Back</button></div>
       </div>
-
       <!-- ── S4: Q3 Scalp ── -->
       <div class="step" id="s4">
-        <div class="question-wrap">
-          <div class="q-eyebrow">Question 3 — Scalp Environment</div>
-          <h2 class="q-title">Two days post-wash...</h2>
-          <p class="q-sub">Identify the predominant state of your scalp between washes.</p>
-        </div>
+        <div class="question-wrap"><div class="q-eyebrow">Question 3 — Scalp Environment</div><h2 class="q-title">Two days post-wash...</h2></div>
         <div class="tiles">
-          <div class="tile" onclick="sel(this,'scalp','Oily')">
-            <div class="tile-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><ellipse cx="10" cy="10" rx="5.5" ry="7" fill="rgba(216,203,165,.15)" stroke="var(--gold)" stroke-width="1.1"/><path d="M10 3 Q12 7 10 10 Q8 7 10 3Z" fill="var(--gold)" opacity=".4"/></svg></div>
-            <div class="tile-text"><div class="tth">Noticeably oily</div><div class="ttb">High sebum production requiring clarifying agents, not more moisture.</div></div>
-          </div>
-          <div class="tile" onclick="sel(this,'scalp','Dry')">
-            <div class="tile-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 13 Q7 8 10 7 Q13 8 16 13" stroke="var(--gold)" stroke-width="1.2" stroke-linecap="round" fill="none"/><path d="M7 15.5 Q10 12 13 15.5" stroke="var(--gold)" stroke-width="1" stroke-linecap="round" fill="none" opacity=".5"/></svg></div>
-            <div class="tile-text"><div class="tth">Tight or parched</div><div class="ttb">Low sebum requiring hydrating, anti-inflammatory scalp treatments.</div></div>
-          </div>
-          <div class="tile" onclick="sel(this,'scalp','Sensitive')">
-            <div class="tile-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="var(--gold)" stroke-width="1.1"/><circle cx="7" cy="8" r="1" fill="var(--gold)" opacity=".5"/><circle cx="13" cy="8" r="1" fill="var(--gold)" opacity=".5"/></svg></div>
-            <div class="tile-text"><div class="tth">Irritated or flaky</div><div class="ttb">Requires soothing, minimalist, fragrance-free botanicals.</div></div>
-          </div>
-          <div class="tile" onclick="sel(this,'scalp','Balanced')">
-            <div class="tile-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="var(--gold)" stroke-width="1.1"/><circle cx="10" cy="10" r="2.5" fill="rgba(216,203,165,.3)"/></svg></div>
-            <div class="tile-text"><div class="tth">Comfortable equilibrium</div><div class="ttb">Focus remains squarely on treating the hair shaft.</div></div>
-          </div>
+          <div class="tile" onclick="sel(this,'scalp','Oily')"><div class="tile-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><ellipse cx="10" cy="10" rx="5.5" ry="7" fill="rgba(216,203,165,.15)" stroke="var(--gold)" stroke-width="1.1"/><path d="M10 3 Q12 7 10 10 Q8 7 10 3Z" fill="var(--gold)" opacity=".4"/></svg></div><div class="tile-text"><div class="tth">Noticeably oily</div><div class="ttb">High sebum production requiring clarifying agents, not more moisture.</div></div></div>
+          <div class="tile" onclick="sel(this,'scalp','Dry')"><div class="tile-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 13 Q7 8 10 7 Q13 8 16 13" stroke="var(--gold)" stroke-width="1.2" stroke-linecap="round" fill="none"/><path d="M7 15.5 Q10 12 13 15.5" stroke="var(--gold)" stroke-width="1" stroke-linecap="round" fill="none" opacity=".5"/></svg></div><div class="tile-text"><div class="tth">Tight or parched</div><div class="ttb">Low sebum requiring hydrating, anti-inflammatory scalp treatments.</div></div></div>
+          <div class="tile" onclick="sel(this,'scalp','Sensitive')"><div class="tile-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="var(--gold)" stroke-width="1.1"/><circle cx="7" cy="8" r="1" fill="var(--gold)" opacity=".5"/><circle cx="13" cy="8" r="1" fill="var(--gold)" opacity=".5"/></svg></div><div class="tile-text"><div class="tth">Irritated or flaky</div><div class="ttb">Requires soothing, minimalist, fragrance-free botanicals.</div></div></div>
+          <div class="tile" onclick="sel(this,'scalp','Balanced')"><div class="tile-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="var(--gold)" stroke-width="1.1"/><circle cx="10" cy="10" r="2.5" fill="rgba(216,203,165,.3)"/></svg></div><div class="tile-text"><div class="tth">Comfortable equilibrium</div><div class="ttb">Focus remains squarely on treating the hair shaft.</div></div></div>
         </div>
-        <div class="cta-row">
-           <button class="cta" id="b4" disabled onclick="go(5)">Proceed</button>
-           <button class="back-link" onclick="go(3)">Back</button>
-        </div>
+        <div class="cta-row"><button class="cta" id="b4" disabled onclick="go(5)">Proceed</button><button class="back-link" onclick="go(3)">Back</button></div>
       </div>
-
       <!-- ── S5: Q4 Wet feel ── -->
       <div class="step" id="s5">
-        <div class="question-wrap">
-          <div class="q-eyebrow">Question 4 — Structural Balance</div>
-          <h2 class="q-title">When fully saturated...</h2>
-          <p class="q-sub">This provides the most accurate proxy for protein/moisture balance available outside a laboratory.</p>
-        </div>
+        <div class="question-wrap"><div class="q-eyebrow">Question 4 — Structural Balance</div><h2 class="q-title">When fully saturated...</h2></div>
         <div class="tiles">
-          <div class="tile" onclick="sel(this,'wetfeel','Brittle')">
-            <div class="tile-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M2 10 L8 10" stroke="var(--gold)" stroke-width="1.4" stroke-linecap="round"/><path d="M12 10 L18 10" stroke="var(--gold)" stroke-width="1.4" stroke-linecap="round"/><circle cx="10" cy="10" r="1.2" fill="var(--gold)" opacity=".6"/></svg></div>
-            <div class="tile-text"><div class="tth">Rigid and prone to snapping</div><div class="ttb">Simultaneous protein and moisture depletion. Requires intensive repair.</div></div>
-          </div>
-          <div class="tile" onclick="sel(this,'wetfeel','Balanced')">
-            <div class="tile-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M2 10 Q6 5 10 10 Q14 15 18 10" stroke="var(--gold)" stroke-width="1.4" stroke-linecap="round" fill="none"/></svg></div>
-            <div class="tile-text"><div class="tth">Elastic return</div><div class="ttb">Optimal structural integrity. Maintenance-focused formulations.</div></div>
-          </div>
-          <div class="tile" onclick="sel(this,'wetfeel','Gummy')">
-            <div class="tile-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M2 9 Q6 7 10 10 Q14 13 18 9" stroke="var(--gold)" stroke-width="1.4" stroke-linecap="round" fill="none"/><path d="M8 14.5 L12 14.5" stroke="var(--gold)" stroke-width="1" stroke-linecap="round" opacity=".4"/></svg></div>
-            <div class="tile-text"><div class="tth">Stretches excessively without bouncing back</div><div class="ttb">Classic protein collapse. The internal structure requires rebuilding.</div></div>
-          </div>
+          <div class="tile" onclick="sel(this,'wetfeel','Brittle')"><div class="tile-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M2 10 L8 10" stroke="var(--gold)" stroke-width="1.4" stroke-linecap="round"/><path d="M12 10 L18 10" stroke="var(--gold)" stroke-width="1.4" stroke-linecap="round"/><circle cx="10" cy="10" r="1.2" fill="var(--gold)" opacity=".6"/></svg></div><div class="tile-text"><div class="tth">Rigid and prone to snapping</div><div class="ttb">Simultaneous protein and moisture depletion. Requires intensive repair.</div></div></div>
+          <div class="tile" onclick="sel(this,'wetfeel','Balanced')"><div class="tile-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M2 10 Q6 5 10 10 Q14 15 18 10" stroke="var(--gold)" stroke-width="1.4" stroke-linecap="round" fill="none"/></svg></div><div class="tile-text"><div class="tth">Elastic return</div><div class="ttb">Optimal structural integrity. Maintenance-focused formulations.</div></div></div>
+          <div class="tile" onclick="sel(this,'wetfeel','Gummy')"><div class="tile-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M2 9 Q6 7 10 10 Q14 13 18 9" stroke="var(--gold)" stroke-width="1.4" stroke-linecap="round" fill="none"/><path d="M8 14.5 L12 14.5" stroke="var(--gold)" stroke-width="1" stroke-linecap="round" opacity=".4"/></svg></div><div class="tile-text"><div class="tth">Stretches excessively without bouncing back</div><div class="ttb">Classic protein collapse. The internal structure requires rebuilding.</div></div></div>
         </div>
-        <div class="cta-row">
-           <button class="cta" id="b5" disabled onclick="go(6)">Proceed</button>
-           <button class="back-link" onclick="go(4)">Back</button>
-        </div>
+        <div class="cta-row"><button class="cta" id="b5" disabled onclick="go(6)">Proceed</button><button class="back-link" onclick="go(4)">Back</button></div>
       </div>
-
       <!-- ── S6: Q5 History ── -->
       <div class="step" id="s6">
-        <div class="question-wrap">
-          <div class="q-eyebrow">Question 5 — Chemical Alteration</div>
-          <h2 class="q-title">Current structural history.</h2>
-          <p class="q-sub">Select all conditions present along your mid-lengths and ends.</p>
-        </div>
+        <div class="question-wrap"><div class="q-eyebrow">Question 5 — Chemical Alteration</div><h2 class="q-title">Current structural history.</h2></div>
         <div class="chips">
           <div class="chip" onclick="togChip(this,'Natural')">Virgin / Natural</div>
           <div class="chip" onclick="togChip(this,'Relaxed')">Chemically Relaxed</div>
@@ -635,104 +512,42 @@ body {
           <div class="chip" onclick="togChip(this,'Heat-Damaged')">Thermally Damaged</div>
           <div class="chip" onclick="togChip(this,'Transitioning')">Transitioning Texture</div>
         </div>
-        <div class="cta-row">
-           <button class="cta" id="b6" disabled onclick="go(7)">Proceed</button>
-           <button class="back-link" onclick="go(5)">Back</button>
-        </div>
+        <div class="cta-row"><button class="cta" id="b6" disabled onclick="go(7)">Proceed</button><button class="back-link" onclick="go(5)">Back</button></div>
       </div>
-
       <!-- ── S7: Q6 Protein reaction ── -->
       <div class="step" id="s7">
-        <div class="question-wrap">
-          <div class="q-eyebrow">Question 6 — Protein Reaction</div>
-          <h2 class="q-title">Post-protein response.</h2>
-          <p class="q-sub">Reflect on treatments rich in keratin, silk, or hydrolysed wheat.</p>
-        </div>
+        <div class="question-wrap"><div class="q-eyebrow">Question 6 — Protein Reaction</div><h2 class="q-title">Post-protein response.</h2></div>
         <div class="tiles">
-          <div class="tile" onclick="sel(this,'prot','Tolerant')">
-            <div class="tile-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 11 L8 16 L17 5" stroke="var(--gold)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-            <div class="tile-text"><div class="tth">Fortified and defined</div><div class="ttb">Strongly tolerant to protein supplementation.</div></div>
-          </div>
-          <div class="tile" onclick="sel(this,'prot','Neutral')">
-            <div class="tile-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><line x1="3" y1="10" x2="17" y2="10" stroke="var(--gold)" stroke-width="1.4" stroke-linecap="round"/></svg></div>
-            <div class="tile-text"><div class="tth">Indiscernible change</div><div class="ttb">Neutral biological response.</div></div>
-          </div>
-          <div class="tile" onclick="sel(this,'prot','Sensitive')">
-            <div class="tile-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 4 L16 16 M16 4 L4 16" stroke="var(--gold)" stroke-width="1.4" stroke-linecap="round"/></svg></div>
-            <div class="tile-text"><div class="tth">Unpleasantly stiff or dry</div><div class="ttb">Protein sensitive. Formulas containing active protein will be excluded.</div></div>
-          </div>
+          <div class="tile" onclick="sel(this,'prot','Tolerant')"><div class="tile-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 11 L8 16 L17 5" stroke="var(--gold)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="tile-text"><div class="tth">Fortified and defined</div><div class="ttb">Strongly tolerant to protein supplementation.</div></div></div>
+          <div class="tile" onclick="sel(this,'prot','Neutral')"><div class="tile-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><line x1="3" y1="10" x2="17" y2="10" stroke="var(--gold)" stroke-width="1.4" stroke-linecap="round"/></svg></div><div class="tile-text"><div class="tth">Indiscernible change</div><div class="ttb">Neutral biological response.</div></div></div>
+          <div class="tile" onclick="sel(this,'prot','Sensitive')"><div class="tile-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 4 L16 16 M16 4 L4 16" stroke="var(--gold)" stroke-width="1.4" stroke-linecap="round"/></svg></div><div class="tile-text"><div class="tth">Unpleasantly stiff or dry</div><div class="ttb">Protein sensitive. Formulas containing active protein will be excluded.</div></div></div>
         </div>
-        <div class="cta-row">
-           <button class="cta" id="b7" disabled onclick="go(8)">Proceed</button>
-           <button class="back-link" onclick="go(6)">Back</button>
-        </div>
+        <div class="cta-row"><button class="cta" id="b7" disabled onclick="go(8)">Proceed</button><button class="back-link" onclick="go(6)">Back</button></div>
       </div>
-
       <!-- ── S8: Q7 Goal ── -->
       <div class="step" id="s8">
-        <div class="question-wrap">
-          <div class="q-eyebrow">Question 7 — Aesthetic Priority</div>
-          <h2 class="q-title">Your primary objective.</h2>
-          <p class="q-sub">Select the primary outcome you wish to achieve right now.</p>
-        </div>
+        <div class="question-wrap"><div class="q-eyebrow">Question 7 — Aesthetic Priority</div><h2 class="q-title">Your primary objective.</h2></div>
         <div class="tile-grid">
-          <div class="tile-card" onclick="selCard(this,'goal','Moisture')">
-            <div class="tile-card-ic"><svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M14 3 Q19 10 19 16 A5 5 0 0 1 9 16 Q9 10 14 3Z" stroke="var(--gold)" stroke-width="1.3" fill="none" stroke-linejoin="round"/></svg></div>
-            <div class="tile-card-lb">Deep Moisture</div>
-          </div>
-          <div class="tile-card" onclick="selCard(this,'goal','Strength')">
-            <div class="tile-card-ic"><svg width="28" height="28" viewBox="0 0 28 28" fill="none"><rect x="5" y="12" width="18" height="4" rx="2" stroke="var(--gold)" stroke-width="1.3"/><rect x="2" y="9" width="5" height="10" rx="2.5" stroke="var(--gold)" stroke-width="1.3"/><rect x="21" y="9" width="5" height="10" rx="2.5" stroke="var(--gold)" stroke-width="1.3"/></svg></div>
-            <div class="tile-card-lb">Structural Strength</div>
-          </div>
-          <div class="tile-card" onclick="selCard(this,'goal','Definition')">
-            <div class="tile-card-ic"><svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M8 22 Q11 14 14 12 Q17 14 20 22" stroke="var(--gold)" stroke-width="1.3" stroke-linecap="round" fill="none"/><path d="M11 20 Q13 14 14 12 Q15 14 17 20" stroke="var(--gold)" stroke-width="1" stroke-linecap="round" fill="none" opacity=".45"/></svg></div>
-            <div class="tile-card-lb">Pattern Definition</div>
-          </div>
-          <div class="tile-card" onclick="selCard(this,'goal','Scalp Health')">
-            <div class="tile-card-ic"><svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="9" stroke="var(--gold)" stroke-width="1.3"/><path d="M14 5 Q18 10 14 14 Q10 10 14 5Z" fill="rgba(216, 203, 165, 0.2)" stroke="var(--gold)" stroke-width="1"/></svg></div>
-            <div class="tile-card-lb">Scalp Rebalancing</div>
-          </div>
+          <div class="tile-card" onclick="selCard(this,'goal','Moisture')"><div class="tile-card-ic"><svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M14 3 Q19 10 19 16 A5 5 0 0 1 9 16 Q9 10 14 3Z" stroke="var(--gold)" stroke-width="1.3" fill="none" stroke-linejoin="round"/></svg></div><div class="tile-card-lb">Deep Moisture</div></div>
+          <div class="tile-card" onclick="selCard(this,'goal','Strength')"><div class="tile-card-ic"><svg width="28" height="28" viewBox="0 0 28 28" fill="none"><rect x="5" y="12" width="18" height="4" rx="2" stroke="var(--gold)" stroke-width="1.3"/><rect x="2" y="9" width="5" height="10" rx="2.5" stroke="var(--gold)" stroke-width="1.3"/><rect x="21" y="9" width="5" height="10" rx="2.5" stroke="var(--gold)" stroke-width="1.3"/></svg></div><div class="tile-card-lb">Structural Strength</div></div>
+          <div class="tile-card" onclick="selCard(this,'goal','Definition')"><div class="tile-card-ic"><svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M8 22 Q11 14 14 12 Q17 14 20 22" stroke="var(--gold)" stroke-width="1.3" stroke-linecap="round" fill="none"/><path d="M11 20 Q13 14 14 12 Q15 14 17 20" stroke="var(--gold)" stroke-width="1" stroke-linecap="round" fill="none" opacity=".45"/></svg></div><div class="tile-card-lb">Pattern Definition</div></div>
+          <div class="tile-card" onclick="selCard(this,'goal','Scalp Health')"><div class="tile-card-ic"><svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="9" stroke="var(--gold)" stroke-width="1.3"/><path d="M14 5 Q18 10 14 14 Q10 10 14 5Z" fill="rgba(216, 203, 165, 0.2)" stroke="var(--gold)" stroke-width="1"/></svg></div><div class="tile-card-lb">Scalp Rebalancing</div></div>
         </div>
-        <div class="tile-card" onclick="selCard(this,'goal','Growth')" style="margin: 0 auto 12px; max-width: 264px; width: 100%;">
-          <div class="tile-card-ic"><svg width="28" height="28" viewBox="0 0 28 28" fill="none"><line x1="14" y1="24" x2="14" y2="8" stroke="var(--gold)" stroke-width="1.3" stroke-linecap="round"/><path d="M9 13 L14 8 L19 13" stroke="var(--gold)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-          <div class="tile-card-lb">Follicle Growth</div>
-        </div>
-        <div class="cta-row" style="margin-top:32px">
-           <button class="cta" id="b8" disabled onclick="startCurating()">Generate Crown ID</button>
-           <button class="back-link" onclick="go(7)">Back</button>
-        </div>
+        <div class="tile-card" onclick="selCard(this,'goal','Growth')" style="margin: 0 auto 12px; max-width: 264px; width: 100%;"><div class="tile-card-ic"><svg width="28" height="28" viewBox="0 0 28 28" fill="none"><line x1="14" y1="24" x2="14" y2="8" stroke="var(--gold)" stroke-width="1.3" stroke-linecap="round"/><path d="M9 13 L14 8 L19 13" stroke="var(--gold)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="tile-card-lb">Follicle Growth</div></div>
+        <div class="cta-row" style="margin-top:32px"><button class="cta" id="b8" disabled onclick="startCurating()">Generate Crown ID</button><button class="back-link" onclick="go(7)">Back</button></div>
       </div>
-
       <!-- ── S9: Curating ── -->
       <div class="step" id="s9">
-        <div class="scan-center" style="text-align:center;">
-          <div class="scan-ring" style="margin-bottom:32px"></div>
-          <h2 class="q-title" style="font-size:36px; margin-bottom:12px;">Synthesizing Matches.</h2>
-          <p id="curMsg" style="font-size:11px; letter-spacing:0.2em; text-transform:uppercase; color:var(--muted);">Cross-referencing ingredient matrices…</p>
-        </div>
+        <div class="scan-center" style="text-align:center;"><div class="scan-ring" style="margin-bottom:32px"></div><h2 class="q-title" style="font-size:36px; margin-bottom:12px;">Synthesizing Matches.</h2><p id="curMsg" style="font-size:11px; letter-spacing:0.2em; text-transform:uppercase; color:var(--muted);">Cross-referencing ingredient matrices…</p></div>
       </div>
-
       <!-- ── S10: Result ── -->
       <div class="step" id="s10">
         <div class="result-header">
-          <div class="eyebrow">Your Unique ID</div>
-          <h2>The Curator Box.</h2>
-          <div class="cid-wrap" id="rsegs"></div>
-          <div style="display:flex; justify-content:center;">
-             <div id="exclNote"></div>
-          </div>
+          <div class="eyebrow">Your Unique ID</div><h2>The Curator Box.</h2>
+          <div class="cid-wrap" id="rsegs"></div><div style="display:flex; justify-content:center;"><div id="exclNote"></div></div>
         </div>
-
-        <div class="result-section">
-          <div class="section-label">Selected Formulations</div>
-          <div class="product-grid" id="pGrid"></div>
-        </div>
-
-        <div class="result-section">
-          <div class="section-label">Prescribed Tool</div>
-          <div id="tSlot"></div>
-        </div>
-
+        <div class="result-section"><div class="section-label">Selected Formulations</div><div class="product-grid" id="pGrid"></div></div>
+        <div class="result-section"><div class="section-label">Prescribed Tool</div><div id="tSlot"></div></div>
         <div class="subscribe-bar">
           <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 42px; font-weight: 300; color: var(--gold); margin-bottom: 16px; line-height: 1.1;">Subscribe to your ritual</h3>
           <p style="font-size: 14px; color: var(--muted); line-height: 1.6; margin-bottom: 32px; max-width: 440px;">Quarterly delivery · Cancel any time · Formulations adapt as your biology shifts</p>
@@ -741,14 +556,13 @@ body {
         </div>
       </div>
 
-    </div><!-- /scan-page -->
-  </div><!-- /content-scroll -->
-
-</div><!-- /app-frame -->
+    </div>
+  </div>
+</div>
 
 <script>
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// STATE & LOGIC EXACTLY FROM ORIGINAL
+// STATE & LOGIC
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const S = {
   step:0, scanDone:false,
@@ -786,10 +600,11 @@ function sobelGrad(gray, W, H) {
   return {mag,ang};
 }
 
+// ── OPTIMIZED FALLBACK FACE DETECTION ──
 function detectFaceRegion(pixels, W, H) {
-  const cx0=Math.floor(W*0.15), cx1=Math.floor(W*0.85);
-  const rowW=cx1-cx0;
-  const rawDensity=new Float32Array(H);
+  const cx0 = Math.floor(W * 0.30), cx1 = Math.floor(W * 0.70); // Tighter horizontal limit
+  const rowW = cx1 - cx0;
+  const rawDensity = new Float32Array(H);
 
   for(let y=0; y<H; y++) {
     let n=0;
@@ -799,12 +614,13 @@ function detectFaceRegion(pixels, W, H) {
       const Y  = 0.299*r    + 0.587*g    + 0.114*b;
       const Cb =-0.168736*r - 0.331264*g + 0.500*b    + 128;
       const Cr = 0.500*r    - 0.418688*g - 0.081312*b + 128;
-      if(Y>28 && Cb>=68 && Cb<=138 && Cr>=126 && Cr<=182) n++;
+      // Stricter skin color boundaries
+      if(Y > 60 && Cb >= 77 && Cb <= 127 && Cr >= 133 && Cr <= 173) n++;
     }
-    rawDensity[y]=n/rowW;
+    rawDensity[y] = n/rowW;
   }
 
-  const density=new Float32Array(H);
+  const density = new Float32Array(H);
   for(let y=4; y<H-4; y++) {
     let s=0; for(let d=-4;d<=4;d++) s+=rawDensity[y+d]; density[y]=s/9;
   }
@@ -814,36 +630,31 @@ function detectFaceRegion(pixels, W, H) {
     if(density[y]>maxDens) { maxDens=density[y]; peakY=y; }
   }
 
-  if(maxDens < 0.14 || peakY<0) return null; 
+  if(maxDens < 0.20 || peakY < 0) return null; 
 
-  const THRESH = maxDens * 0.35;
-  let faceTop=peakY;
+  const THRESH = maxDens * 0.40;
+  let faceTop=peakY, faceBot=peakY;
+  
   for(let y=peakY; y>=Math.floor(H*0.02); y--) {
     if(density[y]<THRESH){ faceTop=y+1; break; }
     if(y===Math.floor(H*0.02)) faceTop=y;
   }
-
-  let faceBot=peakY;
   for(let y=peakY; y<Math.floor(H*0.98); y++) {
     if(density[y]<THRESH){ faceBot=y-1; break; }
     if(y===Math.floor(H*0.98)-1) faceBot=y;
   }
 
-  if((faceBot-faceTop)<H*0.06) return null;
-  const faceH=faceBot-faceTop;
-  const estW=Math.round(faceH*0.75);
-  const cx=Math.round(W/2); 
-  const faceLeft=Math.max(0,cx-Math.floor(estW/2));
-  const faceRight=Math.min(W,cx+Math.ceil(estW/2));
-  return {top:faceTop,bottom:faceBot,left:faceLeft,right:faceRight,
-          width:estW,peakY,peakDensity:maxDens,detected:true};
-}
+  const faceH = faceBot - faceTop;
+  // Reject if the detected face takes up the entire screen (bleed error)
+  if(faceH < H*0.06 || faceH > H*0.70) return null;
 
-function hairRegionFromFace(face, W, H) {
-  if(!face) return {y0:0, y1:Math.floor(H*0.38), x0:Math.floor(W*0.12), x1:Math.floor(W*0.88), method:'top-38% fallback (no face detected)'};
-  const yStop = face.top - Math.floor(H*0.015);
-  if(yStop < H*0.05) return {y0:0, y1:Math.floor(H*0.40), x0:Math.floor(W*0.10), x1:Math.floor(W*0.90), faceTop:face.top, method:'face-top fallback (face near top)'};
-  return {y0: 0, y1: yStop, x0: Math.floor(W*0.06), x1: Math.floor(W*0.94), faceTop: face.top, method: 'face-detected'};
+  const estW = Math.min(Math.round(faceH * 0.75), Math.floor(W * 0.55));
+  const cx = Math.round(W/2); 
+  const faceLeft = Math.max(0, cx - Math.floor(estW/2));
+  const faceRight = Math.min(W, cx + Math.ceil(estW/2));
+  
+  return {top:faceTop, bottom:faceBot, left:faceLeft, right:faceRight,
+          width:estW, peakY, peakDensity:maxDens, detected:true};
 }
 
 async function analyseHair(imageEl) {
@@ -855,8 +666,7 @@ async function analyseHair(imageEl) {
   const pixels=imgData.data;
 
   const gray=new Float32Array(PW*PH);
-  for(let i=0;i<PW*PH;i++)
-    gray[i]=0.299*pixels[i*4]+0.587*pixels[i*4+1]+0.114*pixels[i*4+2];
+  for(let i=0;i<PW*PH;i++) gray[i]=0.299*pixels[i*4]+0.587*pixels[i*4+1]+0.114*pixels[i*4+2];
 
   const blurred=gaussBlur5(gray,PW,PH);
   const {mag,ang}=sobelGrad(blurred,PW,PH);
@@ -868,77 +678,96 @@ async function analyseHair(imageEl) {
   const magN=new Float32Array(mag.length);
   for(let i=0;i<mag.length;i++) magN[i]=mag[i]*(100/p90);
 
-  let face=null, faceMethod='YCbCr';
-  if(typeof FaceDetector !== 'undefined') {
-    try {
-      const fd=new FaceDetector({maxDetectedFaces:1,fastMode:true});
-      const results=await fd.detect(c);
-      if(results.length>0) {
-        const b=results[0].boundingBox;
-        face={top:Math.round(b.top), bottom:Math.round(b.top+b.height), left:Math.round(b.left), right:Math.round(b.left+b.width), width:Math.round(b.width), peakY:Math.round(b.top+b.height*0.45), detected:true};
-        faceMethod='FaceDetector-API';
-      }
-    } catch(e) { }
+  // ── MACHINE LEARNING FACE DETECTION ──
+  let face = null, faceMethod = 'Fallback/YCbCr';
+  try {
+    const msg = document.getElementById('scanMsg');
+    if (msg) msg.textContent = 'Locating Facial Landmarks…';
+    
+    const detector = await initDetector();
+    const faces = await detector.estimateFaces(c, { flipHorizontal: false });
+    
+    if (msg) msg.textContent = 'Isolating Hair Geometry…';
+
+    if (faces.length > 0) {
+      const b = faces[0].box;
+      face = {
+        top: Math.max(0, Math.round(b.yMin)),
+        bottom: Math.min(PH, Math.round(b.yMax)),
+        left: Math.max(0, Math.round(b.xMin)),
+        right: Math.min(PW, Math.round(b.xMax)),
+        width: Math.round(b.width),
+        peakY: Math.round(b.yMin + b.height * 0.45),
+        detected: true
+      };
+      faceMethod = 'TFJS-MediaPipe';
+    }
+  } catch(e) {
+    console.warn("ML Face Detection skipped/failed, using fallback.", e);
   }
-  if(!face) {
-    face=detectFaceRegion(pixels,PW,PH);
-    faceMethod=face?'YCbCr-peak':'top-38%-fallback';
+
+  // ── FALLBACK ──
+  if(!face || !face.detected) {
+    face = detectFaceRegion(pixels,PW,PH);
+    faceMethod = face ? 'YCbCr-peak' : 'top-38%-fallback';
   }
 
-  const region=hairRegionFromFace(face,PW,PH);
+  let PATCH = face && face.width ? Math.round(face.width/10) : 24;
+  PATCH = Math.max(14, Math.min(38, PATCH));
 
-  let PATCH=24;
-  if(face && face.width) PATCH=Math.round(face.width/10);
-  else if(face && face.detected) PATCH=Math.round((face.bottom-face.top)*0.85/10);
-  PATCH=Math.max(14,Math.min(38,PATCH));
+  const THRESH = 38;
+  const variances =[];
+  let edgePx=0, totalPx=0, crownEdgePx=0, crownTotalPx=0, midEdgePx=0, midTotalPx=0;
 
-  const THRESH=38;
-  const MIN_DENS=0.10;
-
-  const fL = face && face.left ? face.left : Math.floor(PW*0.25);
-  const fR = face && face.right ? face.right : Math.floor(PW*0.75);
-  const fT = face ? face.top : Math.floor(PH*0.38);
-  const fB = face ? face.bottom : PH;
-  const maxScanY = face ? Math.min(fB + Math.floor((PH-fB)*0.65), PH) : Math.floor(PH*0.38);
-
-  const variances=[];
-  let edgePx=0,totalPx=0, crownEdgePx=0,crownTotalPx=0, midEdgePx=0,midTotalPx=0;
+  // ── SMART CENTER-COLUMN EXCLUSION ──
+  const maxScanY = PH; // Scan all the way down for long side-hair
+  const torsoLeft = face && face.detected ? Math.max(0, face.left - Math.floor(face.width * 0.15)) : 0;
+  const torsoRight = face && face.detected ? Math.min(PW, face.right + Math.floor(face.width * 0.15)) : 0;
 
   for(let y=0; y<maxScanY-PATCH; y+=PATCH) {
-    for(let x=Math.floor(PW*0.04); x<Math.floor(PW*0.96)-PATCH; x+=PATCH) {
+    for(let x=0; x<PW-PATCH; x+=PATCH) {
+      
       if(face && face.detected) {
-        const overlapY = (y+PATCH > fT) && (y < fB);
-        const overlapX = (x+PATCH > fL) && (x < fR);
-        if(overlapY && overlapX) continue;
+        // 1. Exclude Face Interior
+        const overlapFaceX = (x+PATCH > face.left) && (x < face.right);
+        const overlapFaceY = (y+PATCH > face.top) && (y < face.bottom);
+        if(overlapFaceY && overlapFaceX) continue;
+        
+        // 2. Exclude Torso / Chest / Clothing
+        const overlapTorsoX = (x+PATCH > torsoLeft) && (x < torsoRight);
+        const overlapTorsoY = (y >= face.bottom);
+        if(overlapTorsoY && overlapTorsoX) continue;
       }
-      const isCrown = (y+PATCH) <= fT;
-      let sc=0,ss=0,pe=0;
-      for(let dy=0;dy<PATCH;dy++) for(let dx=0;dx<PATCH;dx++) {
-        totalPx++;
-        if(isCrown) crownTotalPx++; else midTotalPx++;
-        const idx=(y+dy)*PW+(x+dx);
-        if(magN[idx]>THRESH){
-          pe++;edgePx++;
-          if(isCrown) crownEdgePx++; else midEdgePx++;
-          sc+=Math.cos(2*ang[idx]);
-          ss+=Math.sin(2*ang[idx]);
+
+      const isCrown = face && face.detected ? ((y+PATCH) <= face.top) : ((y+PATCH) <= Math.floor(PH*0.38));
+      
+      let sc=0, ss=0, pe=0;
+      for(let dy=0; dy<PATCH; dy++) {
+        for(let dx=0; dx<PATCH; dx++) {
+          totalPx++;
+          if(isCrown) crownTotalPx++; else midTotalPx++;
+          const idx = (y+dy)*PW + (x+dx);
+          if(magN[idx] > THRESH){
+            pe++; edgePx++;
+            if(isCrown) crownEdgePx++; else midEdgePx++;
+            sc += Math.cos(2*ang[idx]);
+            ss += Math.sin(2*ang[idx]);
+          }
         }
       }
-      if(pe/(PATCH*PATCH)>=MIN_DENS){
-        const R=Math.sqrt(sc*sc+ss*ss)/pe;
-        variances.push({v:1-R, crown:isCrown});
+      
+      const patchDensity = pe / (PATCH * PATCH);
+      // DENSITY CLAMP: Ignore clean background walls (<12%) and digital artifact noise (>75%)
+      if(patchDensity >= 0.12 && patchDensity <= 0.75) {
+        const R = Math.sqrt(sc*sc + ss*ss) / pe;
+        variances.push({ v: 1-R, crown: isCrown });
       }
     }
   }
 
-  if(variances.length<6) {
-    for(let y=0;y<maxScanY-PATCH;y+=PATCH) for(let x=Math.floor(PW*0.04);x<Math.floor(PW*0.96)-PATCH;x+=PATCH) {
-      if(face&&face.detected){const oY=(y+PATCH>fT)&&(y<fB);const oX=(x+PATCH>fL)&&(x<fR);if(oY&&oX)continue;}
-      let sc=0,ss=0,pe=0;
-      const isCrown=(y+PATCH)<=fT;
-      for(let dy=0;dy<PATCH;dy++)for(let dx=0;dx<PATCH;dx++){const idx=(y+dy)*PW+(x+dx);if(magN[idx]>THRESH){pe++;sc+=Math.cos(2*ang[idx]);ss+=Math.sin(2*ang[idx]);}}
-      if(pe>3){const R=Math.sqrt(sc*sc+ss*ss)/pe;variances.push({v:1-R,crown:isCrown});}
-    }
+  // Graceful handling if absolutely no hair is detected
+  if(variances.length < 3) {
+      return {meanVar: 0.55, rawVar: 0.55, edgeDensity: 0.05, patchCount: variances.length, crownMedian: null, midMedian: null, crownCount: 0, midCount: 0, crownEdgeDens: 0, midEdgeDens: 0, midDensRatio: 0, midHasHair: false, PATCH, region: { method: faceMethod }, face, canvas: c, faceMethod, frizzCorrected: false};
   }
 
   const crownEdgeDens = crownTotalPx>0 ? crownEdgePx/crownTotalPx : 0;
@@ -966,7 +795,7 @@ async function analyseHair(imageEl) {
   return {meanVar, rawVar, edgeDensity, patchCount:variances.length,
           crownMedian, midMedian, crownCount:crownVars.length, midCount:midVars.length,
           crownEdgeDens, midEdgeDens, midDensRatio, midHasHair,
-          PATCH, region, face, canvas:c, faceMethod, frizzCorrected};
+          PATCH, region: { method: faceMethod }, face, canvas:c, faceMethod, frizzCorrected};
 }
 
 function curlTypeFromVariance(v) {
@@ -1198,19 +1027,66 @@ function resetPhoto() {
   document.getElementById('phInput').value='';
 }
 
-const scanMsgs=['Reading biological geometry…','Measuring structural variance…','Detecting natural properties…','Mapping final profile…'];
+// Add a global detector cache so we don't redownload the model if the user uploads a second photo
+let faceDetectorInstance = null;
+
+async function initDetector() {
+  if (faceDetectorInstance) return faceDetectorInstance;
+  if (typeof faceDetection === 'undefined') throw new Error("TFJS Library not loaded yet.");
+  
+  const model = faceDetection.SupportedModels.MediaPipeFaceDetector;
+  const detectorConfig = { runtime: 'tfjs', maxFaces: 1 };
+  faceDetectorInstance = await faceDetection.createDetector(model, detectorConfig);
+  return faceDetectorInstance;
+}
 
 function startScan() {
-  document.getElementById('phG').style.display='none';
-  document.getElementById('phS').style.display='flex';
-  const msg=document.getElementById('scanMsg');
-  let i=0;
-  const iv=setInterval(()=>{
-    msg.style.opacity=0;
-    setTimeout(()=>{msg.textContent=scanMsgs[Math.min(i,scanMsgs.length-1)];msg.style.opacity=1;},200);
-    i++;
-    if(i>=scanMsgs.length){clearInterval(iv);runCVAnalysis();}
-  },800);
+  document.getElementById('phG').style.display = 'none';
+  document.getElementById('phS').style.display = 'flex';
+  const msg = document.getElementById('scanMsg');
+  msg.textContent = 'Initializing Neural Network…';
+  
+  if (!S.photoImg) {
+    resetPhoto();
+    return;
+  }
+
+  // We use a small timeout to allow the browser to paint the loading UI 
+  // BEFORE TensorFlow begins compiling its WebGL shaders (which momentarily locks the main thread).
+  setTimeout(() => {
+    
+    // 1. Run the Analysis
+    analyseHair(S.photoImg)
+      .then(result => {
+        msg.textContent = 'Mapping Final Profile…';
+        
+        // 2. Small delay for UX flow, then show results
+        setTimeout(() => {
+          const ct = curlTypeFromVariance(result.meanVar);
+          const dens = densityFromEdge(result.edgeDensity);
+          const conf = confidenceScore(result.meanVar, result.patchCount);
+          
+          S.curl = ct.label; 
+          S.density = dens; 
+          S.curlVariance = result.meanVar;
+          
+          showScanResult(ct, dens, conf, result);
+        }, 800);
+      })
+      .catch(err => {
+        // 3. Robust Error Catching (Prevents the infinite hang)
+        console.error("Scan Pipeline Error:", err);
+        msg.textContent = 'Analysis Failed. Please try another photo.';
+        
+        // Reset back to upload screen after 3 seconds
+        setTimeout(() => {
+          resetPhoto();
+          document.getElementById('phS').style.display = 'none';
+          document.getElementById('phG').style.display = 'flex';
+        }, 3000);
+      });
+      
+  }, 150);
 }
 
 function startCurating() {
@@ -1231,21 +1107,45 @@ function drawDebugOverlay(raw) {
   dbg.width=W; dbg.height=H;
   const ctx=dbg.getContext('2d');
   ctx.drawImage(src,0,0);
+  
   ctx.strokeStyle='rgba(216, 203, 165,.4)'; ctx.lineWidth=1.5;
   ctx.setLineDash([3,3]); ctx.strokeRect(2,2,W-4,H-4); ctx.setLineDash([]);
-  if(raw.face&&raw.face.detected) {
-    const f=raw.face;
-    const fL=f.left||Math.floor(W*0.25), fR=f.right||Math.floor(W*0.75);
-    ctx.fillStyle='rgba(200,60,60,0.22)';
-    ctx.fillRect(fL,f.top,fR-fL,f.bottom-f.top);
-    ctx.setLineDash([4,3]); ctx.strokeStyle='rgba(200,80,80,0.55)'; ctx.lineWidth=1.2;
-    ctx.strokeRect(fL,f.top,fR-fL,f.bottom-f.top); ctx.setLineDash([]);
-    ctx.fillStyle='rgba(200,80,80,0.75)'; ctx.font='bold 11px system-ui';
-    ctx.fillText('face excluded',fL+6,f.top+14);
-    if(f.top>14){ctx.fillStyle='rgba(216, 203, 165,.75)';ctx.font='bold 11px system-ui';ctx.fillText('crown',6,f.top-6);}
-    if(f.bottom<H-12){ctx.fillStyle='rgba(130,200,130,.75)';ctx.font='bold 11px system-ui';ctx.fillText('mid-length',6,f.bottom+14);}
+  
+  if(raw.face && raw.face.detected) {
+    const f = raw.face;
+    
+    // 1. Draw Torso Exclusion Box
+    const torsoLeft = Math.max(0, f.left - Math.floor(f.width * 0.15));
+    const torsoRight = Math.min(W, f.right + Math.floor(f.width * 0.15));
+    
+    ctx.fillStyle = 'rgba(60,60,200,0.15)';
+    ctx.fillRect(torsoLeft, f.bottom, torsoRight - torsoLeft, H - f.bottom);
+    ctx.strokeStyle = 'rgba(80,80,200,0.4)'; ctx.lineWidth = 1.2;
+    ctx.strokeRect(torsoLeft, f.bottom, torsoRight - torsoLeft, H - f.bottom);
+    ctx.fillStyle = 'rgba(80,80,200,0.75)'; ctx.font = 'bold 11px system-ui';
+    ctx.fillText('torso excluded', torsoLeft + 6, f.bottom + 14);
+
+    // 2. Draw Face Exclusion Box
+    ctx.fillStyle = 'rgba(200,60,60,0.22)';
+    ctx.fillRect(f.left, f.top, f.right - f.left, f.bottom - f.top);
+    ctx.setLineDash([4,3]); ctx.strokeStyle = 'rgba(200,80,80,0.55)'; ctx.lineWidth = 1.2;
+    ctx.strokeRect(f.left, f.top, f.right - f.left, f.bottom - f.top); ctx.setLineDash([]);
+    ctx.fillStyle = 'rgba(200,80,80,0.75)'; ctx.font = 'bold 11px system-ui';
+    ctx.fillText('face excluded', f.left + 6, f.top + 14);
+
+    // Guide texts
+    if(f.top > 14) {
+        ctx.fillStyle='rgba(216, 203, 165,.75)'; ctx.font='bold 11px system-ui';
+        ctx.fillText('crown', 6, f.top - 6);
+    }
+    if(f.bottom < H - 12) {
+        ctx.fillStyle='rgba(130,200,130,.75)'; ctx.font='bold 11px system-ui';
+        ctx.fillText('side lengths', 6, f.bottom + 28);
+    }
+    
     ctx.setLineDash([5,3]); ctx.strokeStyle='rgba(216, 203, 165,.5)'; ctx.lineWidth=1;
     ctx.beginPath(); ctx.moveTo(0,f.top); ctx.lineTo(W,f.top); ctx.stroke(); ctx.setLineDash([]);
+    
   } else {
     ctx.fillStyle='rgba(216, 203, 165,.6)'; ctx.font='bold 11px system-ui';
     ctx.fillText('analysed (no face detected)',6,H-8);
@@ -1266,8 +1166,8 @@ function showScanResult(ct,dens,conf,raw) {
   drawDebugOverlay(raw);
   
   const confLabel=conf>=80?'High':conf>=65?'Moderate':'Low';
-  const faceNote=raw.face?`${raw.faceMethod||'detected'} · hairline ~row ${raw.face.top} · `:`No face detected · `;
-  const patchNote=`Patch ${raw.PATCH||24}px`+(raw.face&&raw.face.width?' (face-calibrated)':'');
+  const faceNote=raw.face?`${raw.faceMethod||'detected'} · `: `No face detected · `;
+  const patchNote=`Patch ${raw.PATCH||24}px`;
   const frizzNote=raw.frizzCorrected?` · <span style="color:rgba(220,150,80,.8)">frizz correction applied (raw ${raw.rawVar!=null?raw.rawVar.toFixed(3):'?'})</span>`:'';
   const crownNote=raw.crownMedian!=null?`Crown: <strong style="color:var(--text)">${raw.crownMedian.toFixed(3)}</strong> (${raw.crownCount}p)`:'';
   const midNote=raw.midMedian!=null?`Mid: <strong style="color:rgba(130,200,130,.9)">${raw.midMedian.toFixed(3)}</strong> (${raw.midCount}p)`:'';
@@ -1276,6 +1176,7 @@ function showScanResult(ct,dens,conf,raw) {
     :raw.midCount>=8
     ?`<span style="color:rgba(220,150,80,.8)">← crown primary (mid rejected: ratio ${raw.midDensRatio!=null?raw.midDensRatio.toFixed(2):'?'} < 0.52)</span>`
     :`<span style="color:rgba(216, 203, 165,.5)">← crown primary (short hair)</span>`;
+    
   document.getElementById('cvDetail').innerHTML=
     `<strong style="color:var(--gold);font-size:11px;text-transform:uppercase;letter-spacing:.1em">CV Analysis</strong> · `+
     `<span style="color:rgba(216, 203, 165,.5)">${raw.region?raw.region.method:''}</span><br>`+
@@ -1283,26 +1184,10 @@ function showScanResult(ct,dens,conf,raw) {
     `${[crownNote,midNote].filter(Boolean).join(' · ')} ${primaryNote}<br>`+
     `Variance: <strong style="color:var(--text)">${raw.meanVar.toFixed(3)}</strong>${frizzNote} `+
     `<span style="color:rgba(216, 203, 165,.38)">(1A<0.12 · 1C<0.45 · 2B<0.54 · 3A<0.68 · 4A<0.91)</span><br>`+
-    `Patches: <strong style="color:var(--text)">${raw.patchCount}</strong> · `+
-    `Edge density: <strong style="color:var(--text)">${(raw.edgeDensity*100).toFixed(1)}%</strong> · `+
+    `Patches Analyzed: <strong style="color:var(--text)">${raw.patchCount}</strong> (Strict density clamped) · `+
+    `Edge density: <strong style="color:var(--text)">${(raw.edgeDensity*100).toFixed(1)}%</strong><br>`+
     `Confidence: <strong style="color:var(--text)">${confLabel} (${conf}%)</strong>`;
   S.scanDone=true;
-}
-
-async function runCVAnalysis() {
-  await new Promise(r=>setTimeout(r,400));
-  let result;
-  if(S.photoImg){
-    try { result=await analyseHair(S.photoImg); }
-    catch(e){ result={meanVar:0.55,rawVar:0.55,edgeDensity:0.12,patchCount:10,PATCH:24,faceMethod:'error-fallback',frizzCorrected:false,crownMedian:null,midMedian:null,crownCount:0,midCount:0,crownEdgeDens:0,midEdgeDens:0,midDensRatio:0,midHasHair:false,region:{y0:0,y1:240,x0:64,x1:576,method:'error-fallback'},face:null,canvas:null}; }
-  } else {
-    result={meanVar:0.55,rawVar:0.55,edgeDensity:0.12,patchCount:10,PATCH:24,faceMethod:'no-photo',frizzCorrected:false,crownMedian:null,midMedian:null,crownCount:0,midCount:0,crownEdgeDens:0,midEdgeDens:0,midDensRatio:0,midHasHair:false,region:{y0:0,y1:240,x0:64,x1:576,method:'no-photo'},face:null,canvas:null};
-  }
-  const ct=curlTypeFromVariance(result.meanVar);
-  const dens=densityFromEdge(result.edgeDensity);
-  const conf=confidenceScore(result.meanVar,result.patchCount);
-  S.curl=ct.label; S.density=dens; S.curlVariance=result.meanVar;
-  setTimeout(()=>showScanResult(ct,dens,conf,result),300);
 }
 
 function buildResult() {
