@@ -4,93 +4,82 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Crown Scan — Crown Collective</title>
-
-<!-- ── MACHINE LEARNING IMPORTS ── -->
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/face-detection"></script>
-
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@300;400;500;600&display=swap');
 
 *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg: #0D1411; 
-  --surface: rgba(216, 203, 165, 0.03);
-  --surface2: rgba(216, 203, 165, 0.06);
-  --gold: #D8CBA5; 
-  --gold-dim: rgba(216, 203, 165, 0.12);
-  --gold-line: rgba(216, 203, 165, 0.25);
-  --text: #EAE5D9;
-  --muted: #9AA09C;
-  --faint: rgba(216, 203, 165, 0.1);
-  --radius: 16px;
+  --bg:         #F5F2EB;
+  --surface:    rgba(107, 90, 42, 0.04);
+  --surface2:   rgba(107, 90, 42, 0.09);
+  --gold:       #6B5A2A;
+  --gold-dim:   rgba(107, 90, 42, 0.10);
+  --gold-line:  rgba(107, 90, 42, 0.18);
+  --text:       #1A1812;
+  --muted:      #6A6252;
+  --faint:      rgba(107, 90, 42, 0.08);
+  --radius:     16px;
   --transition: 400ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-html { 
-  background: #040605; 
-  color: var(--text); 
-  font-family: 'DM Sans', sans-serif; 
-  -webkit-font-smoothing: antialiased; 
+html {
+  background: #E5DFD0;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
-body { 
-  min-height: 100vh; 
-  display: flex; 
-  align-items: center; 
+body {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
   justify-content: center;
-  overflow: hidden; 
+  overflow: hidden;
 }
 
 /* ── FULL SCREEN FRAMING ── */
 .app-frame {
   position: absolute;
-  inset: 24px; 
-  background: linear-gradient(to bottom, rgba(13, 20, 17, 0.95), rgba(13, 20, 17, 0.98)), 
-              url('https://images.unsplash.com/photo-1598905624795-0210f845eece?q=80&w=2000&auto=format&fit=crop') center/cover no-repeat;
-  border: 1px solid var(--gold-line);
+  inset: 24px;
+  background: var(--bg);
+  border: 1px solid rgba(107, 90, 42, 0.14);
   border-radius: 20px;
   display: flex;
   flex-direction: column;
-  overflow: hidden; 
-  box-shadow: 0 30px 80px rgba(0,0,0,0.8);
+  overflow: hidden;
+  box-shadow: 0 24px 80px rgba(80, 65, 20, 0.14), 0 4px 16px rgba(80, 65, 20, 0.08);
 }
-
-@media(max-width: 640px) {
-  .app-frame { inset: 12px; border-radius: 16px; }
-}
+@media(max-width:640px) { .app-frame { inset: 12px; border-radius: 16px; } }
 
 /* ── TOP NAV ── */
 .top-nav-wrap {
   position: relative;
   z-index: 20;
-  padding: 40px 0 20px;
+  padding: 36px 0 18px;
   display: flex;
   justify-content: center;
   flex-shrink: 0;
 }
-
 .pill-nav {
   display: inline-flex;
   gap: 32px;
   border: 1px solid var(--gold-line);
   border-radius: 100px;
-  padding: 12px 40px;
+  padding: 11px 40px;
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.15em;
   color: var(--gold);
-  background: rgba(13, 20, 17, 0.8);
+  background: rgba(245, 242, 235, 0.9);
   backdrop-filter: blur(12px);
 }
-@media(max-width: 640px) {
-  .top-nav-wrap { padding: 24px 0 16px; }
-  .pill-nav { padding: 10px 24px; gap: 20px; }
-}
+@media(max-width:640px) { .top-nav-wrap { padding: 22px 0 14px; } .pill-nav { padding: 10px 24px; gap: 20px; } }
 .pill-nav span { cursor: pointer; transition: color var(--transition); }
-.pill-nav span:hover { color: #FFF; }
-.pill-nav .active-nav { color: #FFF; }
+.pill-nav span:hover { color: var(--text); }
+.pill-nav .active-nav { color: var(--text); font-weight: 500; }
 
 /* ── SCROLLABLE CONTENT ── */
 .content-scroll {
@@ -105,7 +94,6 @@ body {
   flex-direction: column;
 }
 .content-scroll::-webkit-scrollbar { width: 4px; }
-.content-scroll::-webkit-scrollbar-track { background: transparent; }
 .content-scroll::-webkit-scrollbar-thumb { background: var(--gold-line); border-radius: 10px; }
 
 .scan-page {
@@ -119,11 +107,11 @@ body {
 }
 
 /* ── PROGRESS ── */
-.progress-wrap { 
-  margin: 20px auto 40px; 
-  flex-shrink: 0; 
-  width: 100%; 
-  max-width: 600px; 
+.progress-wrap {
+  margin: 18px auto 36px;
+  flex-shrink: 0;
+  width: 100%;
+  max-width: 600px;
 }
 .progress-track { display: flex; gap: 3px; height: 1px; background: var(--faint); }
 .progress-fill { height: 1px; background: var(--gold); transition: width .6s cubic-bezier(.4,0,.2,1); width: 0; }
@@ -137,48 +125,47 @@ body {
   display: none; transition: color var(--transition);
 }
 .back-btn:hover { color: var(--gold); }
-.back-btn::before { content: '←  '; opacity: 0.6; }
+.back-btn::before { content: '←  '; opacity: 0.5; }
 
 /* ── STEP PANELS ── */
 .step { display: none; width: 100%; }
 .step.active { display: flex; flex-direction: column; justify-content: center; flex: 1; animation: fadein .5s ease forwards; }
-@keyframes fadein { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fadein { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-#phG, #phS, #phR { 
-  display: none; 
-  flex-direction: column; 
-  justify-content: center; 
-  align-items: center; 
-  flex: 1; 
-  width: 100%; 
+#phG, #phS, #phR {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  flex: 1;
+  width: 100%;
 }
 
 /* ── INTRO ── */
 .intro-body { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; width: 100%; }
-@media(max-width: 800px) { .intro-body { grid-template-columns: 1fr; gap: 40px; text-align: center; } .intro-steps { align-items: center; } .istep { text-align: left; } }
+@media(max-width:800px) { .intro-body { grid-template-columns: 1fr; gap: 40px; text-align: center; } .intro-steps { align-items: center; } .istep { text-align: left; } }
 .intro-left .eyebrow { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); margin-bottom: 20px; }
-.intro-left h1 { font-family: 'Cormorant Garamond', serif; font-size: 56px; line-height: 1.1; font-weight: 300; margin-bottom: 24px; color: var(--gold); }
-@media(max-width: 580px) { .intro-left h1 { font-size: 42px; } }
+.intro-left h1 { font-family: 'Cormorant Garamond', serif; font-size: 56px; line-height: 1.1; font-weight: 300; margin-bottom: 24px; color: var(--text); }
+@media(max-width:580px) { .intro-left h1 { font-size: 42px; } }
 .intro-left p { font-size: 14px; color: var(--muted); line-height: 1.8; margin-bottom: 40px; max-width: 440px; }
-@media(max-width: 800px) { .intro-left p { margin: 0 auto 40px; } }
+@media(max-width:800px) { .intro-left p { margin: 0 auto 40px; } }
 .intro-steps { display: flex; flex-direction: column; gap: 16px; max-width: 440px; }
 .istep { display: flex; align-items: flex-start; gap: 16px; font-size: 13px; color: var(--text); line-height: 1.6; }
 .istep-n { width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--gold-line); display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--gold); flex-shrink: 0; margin-top: 1px; }
 .intro-right { position: relative; width: 100%; max-width: 400px; margin: 0 auto; }
-.intro-visual { width: 100%; aspect-ratio: 1; background: var(--surface); border-radius: 24px; border: 1px solid var(--gold-line); display: flex; align-items: center; justify-content: center; overflow: hidden; box-shadow: inset 0 0 60px rgba(0,0,0,0.5); }
-.intro-visual svg { opacity: 0.4; }
+.intro-visual { width: 100%; aspect-ratio: 1; background: var(--surface); border-radius: 24px; border: 1px solid var(--gold-line); display: flex; align-items: center; justify-content: center; overflow: hidden; }
 
 /* ── QUESTION PANELS ── */
 .question-wrap { text-align: center; max-width: 680px; margin: 0 auto; width: 100%; }
 .q-eyebrow { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); margin-bottom: 16px; display: flex; justify-content: center; }
-.q-title { font-family: 'Cormorant Garamond', serif; font-size: 42px; font-weight: 300; line-height: 1.2; margin-bottom: 16px; color: var(--gold); }
-@media(max-width: 580px) { .q-title { font-size: 32px; } }
+.q-title { font-family: 'Cormorant Garamond', serif; font-size: 42px; font-weight: 300; line-height: 1.2; margin-bottom: 16px; color: var(--text); }
+@media(max-width:580px) { .q-title { font-size: 32px; } }
 .q-sub { font-size: 13px; color: var(--muted); line-height: 1.7; margin-bottom: 40px; max-width: 500px; margin-left: auto; margin-right: auto; }
 
 /* ── TILES ── */
 .tiles { display: flex; flex-direction: column; gap: 12px; margin: 0 auto 40px; max-width: 540px; width: 100%; }
 .tile { background: var(--surface); border: 1px solid var(--gold-line); border-radius: var(--radius); padding: 22px 24px; cursor: pointer; transition: all var(--transition); user-select: none; display: flex; align-items: flex-start; gap: 20px; text-align: left; }
-.tile:hover { border-color: var(--gold); background: var(--surface2); transform: translateY(-2px); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+.tile:hover { border-color: var(--gold); background: var(--surface2); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(107, 90, 42, 0.1); }
 .tile.sel { border-color: var(--gold); background: var(--gold-dim); }
 .tile-icon { width: 22px; height: 22px; flex-shrink: 0; margin-top: 2px; display: flex; align-items: center; justify-content: center; }
 .tile-text .tth { font-size: 15px; font-weight: 400; color: var(--text); margin-bottom: 6px; letter-spacing: 0.01em; }
@@ -186,9 +173,9 @@ body {
 
 /* ── GRID TILES (2 col) ── */
 .tile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 0 auto 12px; max-width: 540px; width: 100%; }
-@media(max-width: 480px) { .tile-grid { grid-template-columns: 1fr; } }
+@media(max-width:480px) { .tile-grid { grid-template-columns: 1fr; } }
 .tile-card { background: var(--surface); border: 1px solid var(--gold-line); border-radius: var(--radius); padding: 24px 16px; cursor: pointer; text-align: center; transition: all var(--transition); user-select: none; }
-.tile-card:hover { border-color: var(--gold); background: var(--surface2); transform: translateY(-2px); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+.tile-card:hover { border-color: var(--gold); background: var(--surface2); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(107, 90, 42, 0.1); }
 .tile-card.sel { border-color: var(--gold); background: var(--gold-dim); }
 .tile-card-ic { width: 32px; height: 32px; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; }
 .tile-card-lb { font-size: 13px; font-weight: 400; letter-spacing: 0.05em; color: var(--text); }
@@ -197,51 +184,59 @@ body {
 .chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin: 0 auto 40px; max-width: 540px; }
 .chip { font-size: 12px; padding: 12px 24px; border: 1px solid var(--gold-line); border-radius: 100px; cursor: pointer; color: var(--muted); background: var(--surface); transition: all var(--transition); user-select: none; letter-spacing: 0.02em; }
 .chip:hover { border-color: var(--gold); color: var(--text); background: var(--surface2); transform: translateY(-1px); }
-.chip.sel { border-color: var(--gold); color: var(--bg); background: var(--gold); }
+.chip.sel { border-color: var(--gold); color: #FFF; background: var(--gold); }
 
 /* ── BUTTONS ── */
 .cta-row { margin-top: 10px; display: flex; flex-direction: column; align-items: center; gap: 20px; }
-.cta { font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 500; letter-spacing: 0.15em; text-transform: uppercase; padding: 18px 48px; background: transparent; color: var(--gold); border: 1px solid var(--gold); border-radius: 100px; cursor: pointer; transition: all var(--transition); min-width: 200px; }
-.cta:hover:not(:disabled) { background: var(--gold); color: var(--bg); box-shadow: 0 10px 20px rgba(216, 203, 165, 0.15); }
-.cta:active:not(:disabled) { transform: scale(0.98); }
-.cta:disabled { border-color: var(--faint); color: var(--faint); cursor: not-allowed; }
-
-.cta-primary {
-  font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; padding: 20px 56px; background: var(--gold); color: var(--bg); border: 1px solid var(--gold); border-radius: 100px; cursor: pointer; transition: all var(--transition); box-shadow: 0 10px 30px rgba(216, 203, 165, 0.2);
+.cta {
+  font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 500; letter-spacing: 0.15em;
+  text-transform: uppercase; padding: 18px 48px; background: transparent; color: var(--gold);
+  border: 1px solid var(--gold); border-radius: 100px; cursor: pointer;
+  transition: all var(--transition); min-width: 200px;
 }
-.cta-primary:hover { background: #FFF; border-color: #FFF; box-shadow: 0 15px 40px rgba(216, 203, 165, 0.4); transform: translateY(-3px); }
+.cta:hover:not(:disabled) { background: var(--gold); color: #FFF; box-shadow: 0 8px 20px rgba(107, 90, 42, 0.2); }
+.cta:active:not(:disabled) { transform: scale(0.98); }
+.cta:disabled { border-color: var(--faint); color: rgba(107,90,42,0.25); cursor: not-allowed; }
+.cta-primary {
+  font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 0.15em;
+  text-transform: uppercase; padding: 20px 56px; background: var(--gold); color: #FFF;
+  border: 1px solid var(--gold); border-radius: 100px; cursor: pointer;
+  transition: all var(--transition); box-shadow: 0 8px 24px rgba(107, 90, 42, 0.25);
+}
+.cta-primary:hover { background: #4A3D1A; border-color: #4A3D1A; box-shadow: 0 12px 32px rgba(107, 90, 42, 0.35); transform: translateY(-2px); }
 .cta-primary:active { transform: scale(0.98); }
-
 .back-link { font-family: 'DM Sans', sans-serif; font-size: 10px; color: var(--muted); cursor: pointer; text-decoration: underline; text-underline-offset: 4px; background: none; border: none; padding: 0; display: inline-block; text-transform: uppercase; letter-spacing: 0.15em; transition: color var(--transition); }
 .back-link:hover { color: var(--gold); }
 
-/* ── REDESIGNED PHOTO UPLOAD ── */
+/* ── PHOTO UPLOAD ── */
 .upload-container { max-width: 500px; margin: 0 auto; width: 100%; }
-.upzone-premium { border: 1px dashed var(--gold-line); border-radius: 24px; background: rgba(216, 203, 165, 0.02); padding: 80px 32px; text-align: center; cursor: pointer; transition: all var(--transition); position: relative; }
-.upzone-premium::after { content: ''; position: absolute; inset: 0; border-radius: 24px; border: 1px solid transparent; transition: border-color var(--transition); }
-.upzone-premium:hover { background: rgba(216, 203, 165, 0.05); border-color: transparent; transform: translateY(-2px); }
-.upzone-premium:hover::after { border-color: var(--gold); box-shadow: inset 0 0 40px rgba(0,0,0,0.5); }
+.upzone-premium {
+  border: 1px dashed var(--gold-line); border-radius: 24px;
+  background: var(--surface); padding: 80px 32px; text-align: center;
+  cursor: pointer; transition: all var(--transition); position: relative;
+}
+.upzone-premium:hover { background: var(--surface2); border-color: var(--gold); transform: translateY(-2px); box-shadow: 0 12px 32px rgba(107,90,42,0.1); }
 .upzone-premium input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; z-index: 10; }
-.up-icon { width: 48px; height: 48px; margin: 0 auto 24px; opacity: 0.8; stroke: var(--gold); }
-.up-label { font-family: 'Cormorant Garamond', serif; font-size: 28px; color: var(--gold); margin-bottom: 12px; font-weight: 300; }
+.up-icon { width: 48px; height: 48px; margin: 0 auto 24px; stroke: var(--gold); opacity: 0.7; }
+.up-label { font-family: 'Cormorant Garamond', serif; font-size: 28px; color: var(--text); margin-bottom: 12px; font-weight: 300; }
 .up-hint { font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--muted); letter-spacing: 0.05em; text-transform: uppercase; }
-#phPrev { width: 100%; max-height: 480px; object-fit: cover; border-radius: 24px; border: 1px solid var(--gold); display: none; margin: 0 auto; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+#phPrev { width: 100%; max-height: 480px; object-fit: cover; border-radius: 24px; border: 1px solid var(--gold-line); display: none; margin: 0 auto; box-shadow: 0 12px 40px rgba(107,90,42,0.15); }
 .prev-change { display: none; font-family: 'DM Sans', sans-serif; font-size: 10px; color: var(--muted); margin-top: 24px; cursor: pointer; text-decoration: underline; text-underline-offset: 4px; text-transform: uppercase; letter-spacing: 0.15em; transition: color var(--transition); text-align: center; }
 .prev-change:hover { color: var(--gold); }
 
 /* ── PROCESSING ── */
 .scan-center { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 32px; width: 100%; }
 .scan-ring { width: 80px; height: 80px; border-radius: 50%; border: 1px solid var(--gold-line); border-top-color: var(--gold); animation: ring 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite; position: relative; }
-.scan-ring::after { content: ''; position: absolute; inset: 12px; border-radius: 50%; border: 1px solid rgba(216, 203, 165, 0.1); border-top-color: rgba(216, 203, 165, 0.4); animation: ring .8s linear infinite reverse; }
+.scan-ring::after { content: ''; position: absolute; inset: 12px; border-radius: 50%; border: 1px solid rgba(107, 90, 42, 0.1); border-top-color: rgba(107, 90, 42, 0.35); animation: ring .8s linear infinite reverse; }
 @keyframes ring { to { transform: rotate(360deg); } }
 .scan-label { font-size: 11px; color: var(--gold); letter-spacing: 0.2em; text-transform: uppercase; text-align: center; min-height: 18px; transition: opacity .3s; }
 
-/* ── RESULTS PREVIEW ── */
+/* ── SCAN RESULT CARDS ── */
 .water-auto { display: inline-flex; align-items: center; gap: 10px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.15em; padding: 10px 20px; background: var(--surface2); border: 1px solid var(--gold-line); border-radius: 100px; color: var(--text); margin-bottom: 32px; }
 .water-dot { width: 6px; height: 6px; background: var(--gold); border-radius: 50%; flex-shrink: 0; }
 .result-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 0 auto 32px; max-width: 600px; width: 100%; }
-@media(max-width: 440px) { .result-cards { grid-template-columns: 1fr; } }
-.rcard { background: var(--surface); border: 1px solid var(--gold-line); border-radius: 20px; padding: 28px 24px; text-align: left; }
+@media(max-width:440px) { .result-cards { grid-template-columns: 1fr; } }
+.rcard { background: white; border: 1px solid var(--gold-line); border-radius: 20px; padding: 28px 24px; text-align: left; box-shadow: 0 2px 12px rgba(107,90,42,0.06); }
 .rcard-lbl { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 16px; }
 .rcard-val { font-family: 'Cormorant Garamond', serif; font-size: 42px; font-weight: 300; color: var(--gold); line-height: 1; margin-bottom: 10px; }
 .rcard-conf { font-size: 11px; color: var(--gold); opacity: 0.8; }
@@ -253,54 +248,60 @@ body {
 .tech-details summary:hover { color: var(--gold); }
 .tech-details summary::before { content: '+ '; opacity: 0.5; }
 .tech-details[open] summary::before { content: '− '; opacity: 0.5; }
-.tech-inner { padding: 24px; background: var(--surface); border: 1px solid var(--gold-line); border-radius: 16px; margin-top: 16px; font-size: 11px; color: var(--muted); line-height: 1.8; text-align: left; }
-.debug-canvas { width: 100%; max-height: 200px; object-fit: contain; border-radius: 8px; border: 1px solid var(--gold-line); display: block; margin-bottom: 16px; }
+.tech-inner { padding: 24px; background: white; border: 1px solid var(--gold-line); border-radius: 16px; margin-top: 16px; font-size: 11px; color: var(--muted); line-height: 1.8; text-align: left; }
+.debug-canvas { width: 100%; max-height: 220px; object-fit: contain; border-radius: 8px; border: 1px solid var(--gold-line); display: block; margin-bottom: 16px; }
 
-/* ── FINAL PAGE ── */
+/* ── FINAL RESULT PAGE ── */
 .result-header { padding: 0 0 48px; border-bottom: 1px solid var(--gold-line); text-align: center; }
 .result-header .eyebrow { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); margin-bottom: 20px; }
-.result-header h2 { font-family: 'Cormorant Garamond', serif; font-size: 56px; font-weight: 300; line-height: 1.1; margin-bottom: 24px; color: var(--gold); }
-@media(max-width: 580px) { .result-header h2 { font-size: 40px; } }
+.result-header h2 { font-family: 'Cormorant Garamond', serif; font-size: 56px; font-weight: 300; line-height: 1.1; margin-bottom: 24px; color: var(--text); }
+@media(max-width:580px) { .result-header h2 { font-size: 40px; } }
 .cid-wrap { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
-.cid-seg { font-size: 11px; letter-spacing: 0.05em; padding: 8px 16px; background: var(--gold-dim); border: 1px solid rgba(216, 203, 165, 0.22); border-radius: 8px; color: var(--gold); opacity: 0; transform: translateY(4px); transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.cid-seg { font-size: 11px; letter-spacing: 0.05em; padding: 8px 16px; background: var(--gold-dim); border: 1px solid rgba(107, 90, 42, 0.2); border-radius: 8px; color: var(--gold); opacity: 0; transform: translateY(4px); transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
 .cid-seg.vis { opacity: 1; transform: translateY(0); }
-.excl-note { display: inline-flex; align-items: flex-start; gap: 12px; background: rgba(180, 80, 60, 0.05); border: 1px solid rgba(180, 80, 60, 0.18); border-radius: 12px; padding: 14px 20px; font-size: 12px; color: rgba(210, 130, 110, 0.9); line-height: 1.65; margin-top: 24px; text-align: left; max-width: 600px; }
-
+.excl-note { display: inline-flex; align-items: flex-start; gap: 12px; background: rgba(160, 60, 40, 0.05); border: 1px solid rgba(160, 60, 40, 0.15); border-radius: 12px; padding: 14px 20px; font-size: 12px; color: rgba(140, 60, 40, 0.9); line-height: 1.65; margin-top: 24px; text-align: left; max-width: 600px; }
 .result-section { padding: 48px 0 0; }
 .section-label { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); margin-bottom: 32px; display: flex; align-items: center; justify-content: center; gap: 20px; }
 .section-label::before, .section-label::after { content: ''; flex: 1; height: 1px; background: var(--gold-line); max-width: 100px; }
-
 .product-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 16px; }
-@media(max-width: 768px) { .product-grid { grid-template-columns: 1fr; } }
-.pcard, .toolcard { background: var(--surface); border: 1px solid var(--gold-line); border-radius: 20px; padding: 32px 24px; opacity: 0; transform: translateY(12px); transition: all 0.6s ease; text-align: center; }
+@media(max-width:768px) { .product-grid { grid-template-columns: 1fr; } }
+.pcard, .toolcard { background: white; border: 1px solid var(--gold-line); border-radius: 20px; padding: 32px 24px; opacity: 0; transform: translateY(12px); transition: all 0.6s ease; text-align: center; box-shadow: 0 2px 12px rgba(107,90,42,0.05); }
 .pcard.vis, .toolcard.vis { opacity: 1; transform: translateY(0); }
-.pcard:hover, .toolcard:hover { border-color: var(--gold); transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
+.pcard:hover, .toolcard:hover { border-color: var(--gold); transform: translateY(-4px); box-shadow: 0 16px 40px rgba(107,90,42,0.14); }
 .pcard-brand { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; }
 .pcard-type { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 16px; }
 .pcard-name { font-family: 'Cormorant Garamond', serif; font-size: 24px; color: var(--text); line-height: 1.2; margin-bottom: 16px; }
 .pcard-ingr { font-size: 12px; color: var(--muted); line-height: 1.6; margin-bottom: 20px; }
 .pcard-why { font-size: 12px; color: var(--gold); line-height: 1.7; border-top: 1px solid var(--gold-line); padding-top: 20px; }
-
 .toolcard { display: flex; align-items: flex-start; gap: 24px; text-align: left; }
 .tool-icon-wrap { width: 56px; height: 56px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: var(--surface2); border: 1px solid var(--gold-line); border-radius: 16px; }
 .tool-brand { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gold); margin-bottom: 6px; }
 .tool-name { font-family: 'Cormorant Garamond', serif; font-size: 24px; color: var(--text); margin-bottom: 10px; }
 .tool-why { font-size: 13px; color: var(--muted); line-height: 1.7; }
 
-.subscribe-bar { 
-  margin: 64px auto 0; max-width: 680px; padding: 48px; 
-  background: linear-gradient(145deg, rgba(216, 203, 165, 0.02) 0%, rgba(216, 203, 165, 0.05) 100%); 
-  border: 1px solid var(--gold-line); border-radius: 24px; 
-  display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; 
-  box-shadow: inset 0 0 40px rgba(0,0,0,0.2); 
+.subscribe-bar {
+  margin: 64px auto 0; max-width: 680px; padding: 48px;
+  background: linear-gradient(145deg, var(--gold-dim), var(--surface2));
+  border: 1px solid var(--gold-line); border-radius: 24px;
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+  box-shadow: 0 4px 24px rgba(107,90,42,0.08);
 }
-@media(max-width: 640px) { .subscribe-bar { padding: 40px 24px; } }
+@media(max-width:640px) { .subscribe-bar { padding: 40px 24px; } }
+
+/* ── POSTCODE INPUT ── */
+.postcode-input {
+  font-family: 'DM Sans', sans-serif; font-size: 14px; padding: 16px 20px;
+  background: white; border: 1px solid var(--gold-line); border-radius: 12px;
+  color: var(--text); outline: none; transition: border-color .3s;
+  width: 100%; letter-spacing: 0.05em; text-align: center;
+  box-shadow: 0 2px 8px rgba(107,90,42,0.05);
+}
+.postcode-input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(107,90,42,0.08); }
 </style>
 </head>
 <body>
 
 <div class="app-frame">
-  
   <div class="top-nav-wrap">
     <div class="pill-nav">
       <span class="active-nav">Crown Scan</span>
@@ -328,9 +329,9 @@ body {
             <h1>Know your hair.<br>Exactly.</h1>
             <p>A biological hair profile built from computer vision and 7 precise questions — generating a unique Crown ID that drives every formulation we prescribe you.</p>
             <div class="intro-steps">
-              <div class="istep"><div class="istep-n">1</div>Upload one dry-hair selfie — no strand photo needed</div>
+              <div class="istep"><div class="istep-n">1</div>Upload one dry-hair selfie — our engine handles the rest</div>
               <div class="istep"><div class="istep-n">7</div>Visual questions, tap-to-answer</div>
-              <div class="istep"><div class="istep-n" style="border-color:rgba(216, 203, 165, 0.4)">
+              <div class="istep"><div class="istep-n" style="border-color:var(--gold-line)">
                 <svg width="10" height="10" viewBox="0 0 10 10"><circle cx="5" cy="5" r="3.5" fill="none" stroke="var(--gold)" stroke-width="1.2"/><circle cx="5" cy="5" r="1.5" fill="var(--gold)"/></svg>
               </div>Water hardness auto-detected from your postcode</div>
             </div>
@@ -341,12 +342,12 @@ body {
           <div class="intro-right">
             <div class="intro-visual">
               <svg width="240" height="240" viewBox="0 0 200 200" fill="none">
-                <circle cx="100" cy="100" r="80" stroke="rgba(216, 203, 165, 0.3)" stroke-width="1"/>
-                <circle cx="100" cy="100" r="60" stroke="rgba(216, 203, 165, 0.15)" stroke-width="1" stroke-dasharray="3 4"/>
-                <circle cx="100" cy="100" r="40" stroke="rgba(216, 203, 165, 0.1)" stroke-width="1"/>
-                <path d="M60 100 Q70 70 100 60 Q130 70 140 100 Q130 130 100 140 Q70 130 60 100Z" fill="none" stroke="rgba(216, 203, 165, 0.5)" stroke-width="1"/>
-                <circle cx="100" cy="100" r="6" fill="rgba(216, 203, 165, 0.4)"/>
-                <path d="M100 30 L100 45 M100 155 L100 170 M30 100 L45 100 M155 100 L170 100" stroke="rgba(216, 203, 165, 0.3)" stroke-width="1.2" stroke-linecap="round"/>
+                <circle cx="100" cy="100" r="80" stroke="rgba(107,90,42,0.2)" stroke-width="1"/>
+                <circle cx="100" cy="100" r="60" stroke="rgba(107,90,42,0.12)" stroke-width="1" stroke-dasharray="3 4"/>
+                <circle cx="100" cy="100" r="40" stroke="rgba(107,90,42,0.08)" stroke-width="1"/>
+                <path d="M60 100 Q70 70 100 60 Q130 70 140 100 Q130 130 100 140 Q70 130 60 100Z" fill="none" stroke="rgba(107,90,42,0.35)" stroke-width="1"/>
+                <circle cx="100" cy="100" r="6" fill="rgba(107,90,42,0.3)"/>
+                <path d="M100 30 L100 45 M100 155 L100 170 M30 100 L45 100 M155 100 L170 100" stroke="rgba(107,90,42,0.22)" stroke-width="1.2" stroke-linecap="round"/>
               </svg>
             </div>
           </div>
@@ -355,9 +356,7 @@ body {
 
       <!-- ── S1: Photo ── -->
       <div class="step" id="s1">
-
-        <!-- Guide state -->
-        <div id="phG" style="display: flex;">
+        <div id="phG" style="display:flex">
           <div class="question-wrap" style="padding-bottom:0">
             <div class="q-eyebrow">Step 1 — Biometric Scan</div>
             <h2 class="q-title">Your photo.</h2>
@@ -367,7 +366,7 @@ body {
             <img id="phPrev" alt="Your hair">
             <div class="upzone-premium" id="upzone">
               <input type="file" accept="image/*" id="phInput">
-              <svg class="up-icon" viewBox="0 0 36 36" fill="none"><rect x="3" y="7" width="30" height="22" rx="6" stroke="var(--gold)" stroke-width="1.2"/><circle cx="18" cy="18" r="6" stroke="var(--gold)" stroke-width="1.2"/><circle cx="18" cy="18" r="2" fill="var(--gold)" opacity=".6"/><path d="M13 7 L15 3 H21 L23 7" stroke="var(--gold)" stroke-width="1.2" stroke-linejoin="round"/></svg>
+              <svg class="up-icon" viewBox="0 0 36 36" fill="none"><rect x="3" y="7" width="30" height="22" rx="6" stroke="var(--gold)" stroke-width="1.2"/><circle cx="18" cy="18" r="6" stroke="var(--gold)" stroke-width="1.2"/><circle cx="18" cy="18" r="2" fill="var(--gold)" opacity=".5"/><path d="M13 7 L15 3 H21 L23 7" stroke="var(--gold)" stroke-width="1.2" stroke-linejoin="round"/></svg>
               <div class="up-label">Upload a photo</div>
               <div class="up-hint">Tap to browse or drop an image here</div>
             </div>
@@ -378,23 +377,19 @@ body {
           </div>
         </div>
 
-        <!-- Scanning state -->
         <div id="phS">
           <div class="scan-center">
             <div class="scan-ring"></div>
-            <div class="scan-label" id="scanMsg">Initializing Neural Network…</div>
+            <div class="scan-label" id="scanMsg">Initialising neural network…</div>
           </div>
         </div>
 
-        <!-- Results state -->
         <div id="phR">
           <div class="question-wrap" style="padding-bottom:0">
             <div class="q-eyebrow">Analysis Complete</div>
             <h2 class="q-title" style="margin-bottom:24px">Your structural profile.</h2>
           </div>
-          
           <div class="water-auto" id="waterPill"><div class="water-dot"></div><span id="waterTxt">Detecting…</span></div>
-          
           <div class="result-cards" id="rcards">
             <div class="rcard rcard-large" id="rcCurl">
               <div class="rcard-lbl">Detected Curl Type</div>
@@ -413,19 +408,14 @@ body {
             </div>
           </div>
 
-          <!-- Postcode -->
-          <div style="max-width: 400px; width: 100%; margin: 0 auto 32px; text-align: center;">
+          <div style="max-width:400px;width:100%;margin:0 auto 32px;text-align:center;">
             <label style="display:block;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;">Your postcode</label>
             <input id="postcodeInput" type="text" placeholder="e.g. SW1A or EH1" maxlength="8" autocomplete="postal-code"
-              style="font-family:'DM Sans',sans-serif;font-size:14px;padding:16px 20px;background:var(--surface);
-              border:1px solid var(--gold-line);border-radius:12px;color:var(--text);outline:none;
-              transition:border-color .3s;width:100%;letter-spacing:0.05em;text-align:center;"
+              class="postcode-input"
               oninput="onPostcodeInput(this.value)"
               onfocus="this.style.borderColor='var(--gold)'"
               onblur="this.style.borderColor='var(--gold-line)'">
-            <div style="font-size:11px;color:var(--faint);margin-top:12px;">
-              Used only to detect water hardness. First 3–4 characters are sufficient.
-            </div>
+            <div style="font-size:11px;color:var(--muted);opacity:0.6;margin-top:12px;">Used only to detect water hardness. First 3–4 characters are sufficient.</div>
           </div>
 
           <details class="tech-details">
@@ -439,10 +429,8 @@ body {
             <button class="cta" id="continueBtn" disabled onclick="go(2)">Proceed to Diagnostics</button>
           </div>
         </div>
-
       </div>
 
-      <!-- ── S2 TO S10: UNCHANGED ── -->
       <!-- ── S2: Q1 Porosity ── -->
       <div class="step" id="s2">
         <div class="question-wrap">
@@ -451,22 +439,14 @@ body {
           <p class="q-sub">How rapidly does your hair structure absorb moisture?</p>
         </div>
         <div class="tiles">
-          <div class="tile" onclick="sel(this,'por','Low-P')">
-            <div class="tile-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="var(--gold)" stroke-width="1.2"/><circle cx="10" cy="10" r="3.5" stroke="var(--gold)" stroke-width="1"/></svg></div>
-            <div class="tile-text"><div class="tth">Moisture beads on the surface</div><div class="ttb">Indicative of a sealed cuticle. Hair resists moisture entry and requires lightweight, heat-activated delivery.</div></div>
-          </div>
-          <div class="tile" onclick="sel(this,'por','Normal-P')">
-            <div class="tile-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M2 10 Q6 6 10 10 Q14 14 18 10" stroke="var(--gold)" stroke-width="1.4" stroke-linecap="round"/></svg></div>
-            <div class="tile-text"><div class="tth">Soaks in steadily</div><div class="ttb">A structurally balanced cuticle that responds well to a broad range of formulas.</div></div>
-          </div>
-          <div class="tile" onclick="sel(this,'por','High-P')">
-            <div class="tile-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" fill="rgba(216,203,165,.15)" stroke="var(--gold)" stroke-width="1.2"/></svg></div>
-            <div class="tile-text"><div class="tth">Absorbs immediately, dries fast</div><div class="ttb">An open cuticle prone to rapid moisture loss. Requires rich sealants.</div></div>
-          </div>
+          <div class="tile" onclick="sel(this,'por','Low-P')"><div class="tile-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="var(--gold)" stroke-width="1.2"/><circle cx="10" cy="10" r="3.5" stroke="var(--gold)" stroke-width="1"/></svg></div><div class="tile-text"><div class="tth">Moisture beads on the surface</div><div class="ttb">Indicative of a sealed cuticle. Hair resists moisture entry and requires lightweight, heat-activated delivery.</div></div></div>
+          <div class="tile" onclick="sel(this,'por','Normal-P')"><div class="tile-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M2 10 Q6 6 10 10 Q14 14 18 10" stroke="var(--gold)" stroke-width="1.4" stroke-linecap="round"/></svg></div><div class="tile-text"><div class="tth">Soaks in steadily</div><div class="ttb">A structurally balanced cuticle that responds well to a broad range of formulas.</div></div></div>
+          <div class="tile" onclick="sel(this,'por','High-P')"><div class="tile-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" fill="rgba(107,90,42,.1)" stroke="var(--gold)" stroke-width="1.2"/></svg></div><div class="tile-text"><div class="tth">Absorbs immediately, dries fast</div><div class="ttb">An open cuticle prone to rapid moisture loss. Requires rich sealants.</div></div></div>
         </div>
         <div class="cta-row"><button class="cta" id="b2" disabled onclick="go(3)">Proceed</button><button class="back-link" onclick="go(1)">Return to Scan</button></div>
       </div>
-      <!-- ── S3: Q2 Strand feel ── -->
+
+      <!-- ── S3: Q2 Thickness ── -->
       <div class="step" id="s3">
         <div class="question-wrap">
           <div class="q-eyebrow">Question 2 — Thickness</div>
@@ -480,17 +460,19 @@ body {
         </div>
         <div class="cta-row"><button class="cta" id="b3" disabled onclick="go(4)">Proceed</button><button class="back-link" onclick="go(2)">Back</button></div>
       </div>
+
       <!-- ── S4: Q3 Scalp ── -->
       <div class="step" id="s4">
         <div class="question-wrap"><div class="q-eyebrow">Question 3 — Scalp Environment</div><h2 class="q-title">Two days post-wash...</h2></div>
         <div class="tiles">
-          <div class="tile" onclick="sel(this,'scalp','Oily')"><div class="tile-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><ellipse cx="10" cy="10" rx="5.5" ry="7" fill="rgba(216,203,165,.15)" stroke="var(--gold)" stroke-width="1.1"/><path d="M10 3 Q12 7 10 10 Q8 7 10 3Z" fill="var(--gold)" opacity=".4"/></svg></div><div class="tile-text"><div class="tth">Noticeably oily</div><div class="ttb">High sebum production requiring clarifying agents, not more moisture.</div></div></div>
+          <div class="tile" onclick="sel(this,'scalp','Oily')"><div class="tile-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><ellipse cx="10" cy="10" rx="5.5" ry="7" fill="rgba(107,90,42,.08)" stroke="var(--gold)" stroke-width="1.1"/><path d="M10 3 Q12 7 10 10 Q8 7 10 3Z" fill="var(--gold)" opacity=".35"/></svg></div><div class="tile-text"><div class="tth">Noticeably oily</div><div class="ttb">High sebum production requiring clarifying agents, not more moisture.</div></div></div>
           <div class="tile" onclick="sel(this,'scalp','Dry')"><div class="tile-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 13 Q7 8 10 7 Q13 8 16 13" stroke="var(--gold)" stroke-width="1.2" stroke-linecap="round" fill="none"/><path d="M7 15.5 Q10 12 13 15.5" stroke="var(--gold)" stroke-width="1" stroke-linecap="round" fill="none" opacity=".5"/></svg></div><div class="tile-text"><div class="tth">Tight or parched</div><div class="ttb">Low sebum requiring hydrating, anti-inflammatory scalp treatments.</div></div></div>
           <div class="tile" onclick="sel(this,'scalp','Sensitive')"><div class="tile-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="var(--gold)" stroke-width="1.1"/><circle cx="7" cy="8" r="1" fill="var(--gold)" opacity=".5"/><circle cx="13" cy="8" r="1" fill="var(--gold)" opacity=".5"/></svg></div><div class="tile-text"><div class="tth">Irritated or flaky</div><div class="ttb">Requires soothing, minimalist, fragrance-free botanicals.</div></div></div>
-          <div class="tile" onclick="sel(this,'scalp','Balanced')"><div class="tile-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="var(--gold)" stroke-width="1.1"/><circle cx="10" cy="10" r="2.5" fill="rgba(216,203,165,.3)"/></svg></div><div class="tile-text"><div class="tth">Comfortable equilibrium</div><div class="ttb">Focus remains squarely on treating the hair shaft.</div></div></div>
+          <div class="tile" onclick="sel(this,'scalp','Balanced')"><div class="tile-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="var(--gold)" stroke-width="1.1"/><circle cx="10" cy="10" r="2.5" fill="rgba(107,90,42,0.25)"/></svg></div><div class="tile-text"><div class="tth">Comfortable equilibrium</div><div class="ttb">Focus remains squarely on treating the hair shaft.</div></div></div>
         </div>
         <div class="cta-row"><button class="cta" id="b4" disabled onclick="go(5)">Proceed</button><button class="back-link" onclick="go(3)">Back</button></div>
       </div>
+
       <!-- ── S5: Q4 Wet feel ── -->
       <div class="step" id="s5">
         <div class="question-wrap"><div class="q-eyebrow">Question 4 — Structural Balance</div><h2 class="q-title">When fully saturated...</h2></div>
@@ -501,6 +483,7 @@ body {
         </div>
         <div class="cta-row"><button class="cta" id="b5" disabled onclick="go(6)">Proceed</button><button class="back-link" onclick="go(4)">Back</button></div>
       </div>
+
       <!-- ── S6: Q5 History ── -->
       <div class="step" id="s6">
         <div class="question-wrap"><div class="q-eyebrow">Question 5 — Chemical Alteration</div><h2 class="q-title">Current structural history.</h2></div>
@@ -514,7 +497,8 @@ body {
         </div>
         <div class="cta-row"><button class="cta" id="b6" disabled onclick="go(7)">Proceed</button><button class="back-link" onclick="go(5)">Back</button></div>
       </div>
-      <!-- ── S7: Q6 Protein reaction ── -->
+
+      <!-- ── S7: Q6 Protein ── -->
       <div class="step" id="s7">
         <div class="question-wrap"><div class="q-eyebrow">Question 6 — Protein Reaction</div><h2 class="q-title">Post-protein response.</h2></div>
         <div class="tiles">
@@ -524,6 +508,7 @@ body {
         </div>
         <div class="cta-row"><button class="cta" id="b7" disabled onclick="go(8)">Proceed</button><button class="back-link" onclick="go(6)">Back</button></div>
       </div>
+
       <!-- ── S8: Q7 Goal ── -->
       <div class="step" id="s8">
         <div class="question-wrap"><div class="q-eyebrow">Question 7 — Aesthetic Priority</div><h2 class="q-title">Your primary objective.</h2></div>
@@ -531,27 +516,35 @@ body {
           <div class="tile-card" onclick="selCard(this,'goal','Moisture')"><div class="tile-card-ic"><svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M14 3 Q19 10 19 16 A5 5 0 0 1 9 16 Q9 10 14 3Z" stroke="var(--gold)" stroke-width="1.3" fill="none" stroke-linejoin="round"/></svg></div><div class="tile-card-lb">Deep Moisture</div></div>
           <div class="tile-card" onclick="selCard(this,'goal','Strength')"><div class="tile-card-ic"><svg width="28" height="28" viewBox="0 0 28 28" fill="none"><rect x="5" y="12" width="18" height="4" rx="2" stroke="var(--gold)" stroke-width="1.3"/><rect x="2" y="9" width="5" height="10" rx="2.5" stroke="var(--gold)" stroke-width="1.3"/><rect x="21" y="9" width="5" height="10" rx="2.5" stroke="var(--gold)" stroke-width="1.3"/></svg></div><div class="tile-card-lb">Structural Strength</div></div>
           <div class="tile-card" onclick="selCard(this,'goal','Definition')"><div class="tile-card-ic"><svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M8 22 Q11 14 14 12 Q17 14 20 22" stroke="var(--gold)" stroke-width="1.3" stroke-linecap="round" fill="none"/><path d="M11 20 Q13 14 14 12 Q15 14 17 20" stroke="var(--gold)" stroke-width="1" stroke-linecap="round" fill="none" opacity=".45"/></svg></div><div class="tile-card-lb">Pattern Definition</div></div>
-          <div class="tile-card" onclick="selCard(this,'goal','Scalp Health')"><div class="tile-card-ic"><svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="9" stroke="var(--gold)" stroke-width="1.3"/><path d="M14 5 Q18 10 14 14 Q10 10 14 5Z" fill="rgba(216, 203, 165, 0.2)" stroke="var(--gold)" stroke-width="1"/></svg></div><div class="tile-card-lb">Scalp Rebalancing</div></div>
+          <div class="tile-card" onclick="selCard(this,'goal','Scalp Health')"><div class="tile-card-ic"><svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="9" stroke="var(--gold)" stroke-width="1.3"/><path d="M14 5 Q18 10 14 14 Q10 10 14 5Z" fill="rgba(107,90,42,0.18)" stroke="var(--gold)" stroke-width="1"/></svg></div><div class="tile-card-lb">Scalp Rebalancing</div></div>
         </div>
-        <div class="tile-card" onclick="selCard(this,'goal','Growth')" style="margin: 0 auto 12px; max-width: 264px; width: 100%;"><div class="tile-card-ic"><svg width="28" height="28" viewBox="0 0 28 28" fill="none"><line x1="14" y1="24" x2="14" y2="8" stroke="var(--gold)" stroke-width="1.3" stroke-linecap="round"/><path d="M9 13 L14 8 L19 13" stroke="var(--gold)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="tile-card-lb">Follicle Growth</div></div>
+        <div class="tile-card" onclick="selCard(this,'goal','Growth')" style="margin:0 auto 12px;max-width:264px;width:100%;"><div class="tile-card-ic"><svg width="28" height="28" viewBox="0 0 28 28" fill="none"><line x1="14" y1="24" x2="14" y2="8" stroke="var(--gold)" stroke-width="1.3" stroke-linecap="round"/><path d="M9 13 L14 8 L19 13" stroke="var(--gold)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="tile-card-lb">Follicle Growth</div></div>
         <div class="cta-row" style="margin-top:32px"><button class="cta" id="b8" disabled onclick="startCurating()">Generate Crown ID</button><button class="back-link" onclick="go(7)">Back</button></div>
       </div>
+
       <!-- ── S9: Curating ── -->
       <div class="step" id="s9">
-        <div class="scan-center" style="text-align:center;"><div class="scan-ring" style="margin-bottom:32px"></div><h2 class="q-title" style="font-size:36px; margin-bottom:12px;">Synthesizing Matches.</h2><p id="curMsg" style="font-size:11px; letter-spacing:0.2em; text-transform:uppercase; color:var(--muted);">Cross-referencing ingredient matrices…</p></div>
+        <div class="scan-center" style="text-align:center;">
+          <div class="scan-ring" style="margin-bottom:32px"></div>
+          <h2 class="q-title" style="font-size:36px;margin-bottom:12px;">Synthesizing Matches.</h2>
+          <p id="curMsg" style="font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);">Cross-referencing ingredient matrices…</p>
+        </div>
       </div>
-      <!-- ── S10: Result ── -->
+
+      <!-- ── S10: Final Result ── -->
       <div class="step" id="s10">
         <div class="result-header">
-          <div class="eyebrow">Your Unique ID</div><h2>The Curator Box.</h2>
-          <div class="cid-wrap" id="rsegs"></div><div style="display:flex; justify-content:center;"><div id="exclNote"></div></div>
+          <div class="eyebrow">Your Unique ID</div>
+          <h2>The Curator Box.</h2>
+          <div class="cid-wrap" id="rsegs"></div>
+          <div style="display:flex;justify-content:center;"><div id="exclNote"></div></div>
         </div>
         <div class="result-section"><div class="section-label">Selected Formulations</div><div class="product-grid" id="pGrid"></div></div>
         <div class="result-section"><div class="section-label">Prescribed Tool</div><div id="tSlot"></div></div>
         <div class="subscribe-bar">
-          <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 42px; font-weight: 300; color: var(--gold); margin-bottom: 16px; line-height: 1.1;">Subscribe to your ritual</h3>
-          <p style="font-size: 14px; color: var(--muted); line-height: 1.6; margin-bottom: 32px; max-width: 440px;">Quarterly delivery · Cancel any time · Formulations adapt as your biology shifts</p>
-          <div style="font-family: 'DM Sans', sans-serif; font-size: 16px; color: var(--text); margin-bottom: 24px; letter-spacing: 0.1em; text-transform: uppercase;">£45 / Quarter</div>
+          <h3 style="font-family:'Cormorant Garamond',serif;font-size:42px;font-weight:300;color:var(--text);margin-bottom:16px;line-height:1.1;">Subscribe to your ritual</h3>
+          <p style="font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:32px;max-width:440px;">Quarterly delivery · Cancel any time · Formulations adapt as your biology shifts</p>
+          <div style="font-family:'DM Sans',sans-serif;font-size:16px;color:var(--text);margin-bottom:24px;letter-spacing:0.1em;text-transform:uppercase;">£45 / Quarter</div>
           <button class="cta-primary" onclick="alert('Proceeding to secure checkout.')">Reserve Subscription</button>
         </div>
       </div>
@@ -562,7 +555,7 @@ body {
 
 <script>
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// STATE & LOGIC
+// STATE
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const S = {
   step:0, scanDone:false,
@@ -572,13 +565,15 @@ const S = {
   water:'Hard', waterLabel:'Hard Water', chelating:true,
   photoImg:null
 };
+const STEP_NAMES = ['','Scan','Porosity','Structure','Scalp','Balance','History','Protein','Priority','Curation','Results'];
 
-const STEP_NAMES =['','Scan','Porosity','Structure','Scalp','Balance','History','Protein','Priority','Curation','Results'];
-
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// IMAGE PROCESSING PRIMITIVES (unchanged)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function gaussBlur5(src, W, H) {
   const k=[1,4,6,4,1, 4,16,24,16,4, 6,24,36,24,6, 4,16,24,16,4, 1,4,6,4,1];
   const dst=new Float32Array(W*H);
-  for(let y=2;y<H-2;y++) for(let x=2;x<W-2;x++) {
+  for(let y=2;y<H-2;y++) for(let x=2;x<W-2;x++){
     let v=0;
     for(let dy=-2;dy<=2;dy++) for(let dx=-2;dx<=2;dx++)
       v+=src[(y+dy)*W+(x+dx)]*k[(dy+2)*5+(dx+2)];
@@ -589,7 +584,7 @@ function gaussBlur5(src, W, H) {
 
 function sobelGrad(gray, W, H) {
   const mag=new Float32Array(W*H), ang=new Float32Array(W*H);
-  for(let y=1;y<H-1;y++) for(let x=1;x<W-1;x++) {
+  for(let y=1;y<H-1;y++) for(let x=1;x<W-1;x++){
     const gx=(gray[(y-1)*W+(x+1)]+2*gray[y*W+(x+1)]+gray[(y+1)*W+(x+1)])
             -(gray[(y-1)*W+(x-1)]+2*gray[y*W+(x-1)]+gray[(y+1)*W+(x-1)]);
     const gy=(gray[(y+1)*W+(x-1)]+2*gray[(y+1)*W+x]+gray[(y+1)*W+(x+1)])
@@ -600,217 +595,249 @@ function sobelGrad(gray, W, H) {
   return {mag,ang};
 }
 
-// ── OPTIMIZED FALLBACK FACE DETECTION ──
+// Fallback skin-tone face detector (YCbCr)
 function detectFaceRegion(pixels, W, H) {
-  const cx0 = Math.floor(W * 0.30), cx1 = Math.floor(W * 0.70); // Tighter horizontal limit
-  const rowW = cx1 - cx0;
-  const rawDensity = new Float32Array(H);
-
-  for(let y=0; y<H; y++) {
+  const cx0=Math.floor(W*0.30), cx1=Math.floor(W*0.70);
+  const rowW=cx1-cx0;
+  const rawDens=new Float32Array(H);
+  for(let y=0;y<H;y++){
     let n=0;
-    for(let x=cx0; x<cx1; x++) {
+    for(let x=cx0;x<cx1;x++){
       const i=(y*W+x)*4;
-      const r=pixels[i], g=pixels[i+1], b=pixels[i+2];
-      const Y  = 0.299*r    + 0.587*g    + 0.114*b;
-      const Cb =-0.168736*r - 0.331264*g + 0.500*b    + 128;
-      const Cr = 0.500*r    - 0.418688*g - 0.081312*b + 128;
-      // Stricter skin color boundaries
-      if(Y > 60 && Cb >= 77 && Cb <= 127 && Cr >= 133 && Cr <= 173) n++;
+      const r=pixels[i],g=pixels[i+1],b=pixels[i+2];
+      const Y=0.299*r+0.587*g+0.114*b;
+      const Cb=-0.168736*r-0.331264*g+0.500*b+128;
+      const Cr=0.500*r-0.418688*g-0.081312*b+128;
+      if(Y>60&&Cb>=77&&Cb<=127&&Cr>=133&&Cr<=173) n++;
     }
-    rawDensity[y] = n/rowW;
+    rawDens[y]=n/rowW;
   }
-
-  const density = new Float32Array(H);
-  for(let y=4; y<H-4; y++) {
-    let s=0; for(let d=-4;d<=4;d++) s+=rawDensity[y+d]; density[y]=s/9;
-  }
-
-  let maxDens=0, peakY=-1;
-  for(let y=Math.floor(H*0.12); y<Math.floor(H*0.88); y++) {
-    if(density[y]>maxDens) { maxDens=density[y]; peakY=y; }
-  }
-
-  if(maxDens < 0.20 || peakY < 0) return null; 
-
-  const THRESH = maxDens * 0.40;
-  let faceTop=peakY, faceBot=peakY;
-  
-  for(let y=peakY; y>=Math.floor(H*0.02); y--) {
-    if(density[y]<THRESH){ faceTop=y+1; break; }
-    if(y===Math.floor(H*0.02)) faceTop=y;
-  }
-  for(let y=peakY; y<Math.floor(H*0.98); y++) {
-    if(density[y]<THRESH){ faceBot=y-1; break; }
-    if(y===Math.floor(H*0.98)-1) faceBot=y;
-  }
-
-  const faceH = faceBot - faceTop;
-  // Reject if the detected face takes up the entire screen (bleed error)
-  if(faceH < H*0.06 || faceH > H*0.70) return null;
-
-  const estW = Math.min(Math.round(faceH * 0.75), Math.floor(W * 0.55));
-  const cx = Math.round(W/2); 
-  const faceLeft = Math.max(0, cx - Math.floor(estW/2));
-  const faceRight = Math.min(W, cx + Math.ceil(estW/2));
-  
-  return {top:faceTop, bottom:faceBot, left:faceLeft, right:faceRight,
-          width:estW, peakY, peakDensity:maxDens, detected:true};
+  const density=new Float32Array(H);
+  for(let y=4;y<H-4;y++){let s=0;for(let d=-4;d<=4;d++) s+=rawDens[y+d];density[y]=s/9;}
+  let maxD=0,peakY=-1;
+  for(let y=Math.floor(H*0.12);y<Math.floor(H*0.88);y++) if(density[y]>maxD){maxD=density[y];peakY=y;}
+  if(maxD<0.20||peakY<0) return null;
+  const THR=maxD*0.40;
+  let fTop=peakY,fBot=peakY;
+  for(let y=peakY;y>=Math.floor(H*0.02);y--){if(density[y]<THR){fTop=y+1;break;}if(y===Math.floor(H*0.02))fTop=y;}
+  for(let y=peakY;y<Math.floor(H*0.98);y++){if(density[y]<THR){fBot=y-1;break;}if(y===Math.floor(H*0.98)-1)fBot=y;}
+  const fH=fBot-fTop;
+  if(fH<H*0.06||fH>H*0.70) return null;
+  const estW=Math.min(Math.round(fH*0.75),Math.floor(W*0.55));
+  const cx=Math.round(W/2);
+  return {top:fTop,bottom:fBot,left:Math.max(0,cx-Math.floor(estW/2)),right:Math.min(W,cx+Math.ceil(estW/2)),width:estW,peakY,detected:true};
 }
 
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// PERFECTED HAIR ANALYSIS — 5-FIX PIPELINE
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 async function analyseHair(imageEl) {
-  const PW=640, PH=640;
-  const c=document.createElement('canvas'); c.width=PW; c.height=PH;
-  const ctx=c.getContext('2d');
-  ctx.drawImage(imageEl,0,0,PW,PH);
-  const imgData=ctx.getImageData(0,0,PW,PH);
+  const msg = document.getElementById('scanMsg');
+
+  // ── PASS 1: Detect face at a fixed 640×640 canvas ──
+  // This gives us face location in a normalised coordinate space.
+  const DW=640, DH=640;
+  const dc=document.createElement('canvas'); dc.width=DW; dc.height=DH;
+  dc.getContext('2d').drawImage(imageEl,0,0,DW,DH);
+
+  let face640=null, faceMethod='Fallback/YCbCr';
+  try {
+    if(msg) msg.textContent='Locating facial landmarks…';
+    const detector=await initDetector();
+    const faces=await detector.estimateFaces(dc,{flipHorizontal:false});
+    if(faces.length>0){
+      const b=faces[0].box;
+      face640={
+        top:Math.max(0,Math.round(b.yMin)),
+        bottom:Math.min(DH,Math.round(b.yMax)),
+        left:Math.max(0,Math.round(b.xMin)),
+        right:Math.min(DW,Math.round(b.xMax)),
+        width:Math.round(b.width), detected:true
+      };
+      faceMethod='TFJS-MediaPipe';
+    }
+  } catch(e) { console.warn('ML face detection failed, using fallback.',e); }
+
+  if(!face640||!face640.detected){
+    const dp=dc.getContext('2d').getImageData(0,0,DW,DH).data;
+    face640=detectFaceRegion(dp,DW,DH);
+    faceMethod=face640?'YCbCr-peak':'top-38%-fallback';
+  }
+
+  // ── FIX 1: Extract the HAIR ZONE from the original image at full resolution ──
+  // Instead of squashing the whole image to 640×640, we crop the hair-bearing
+  // region and upscale it to a minimum analysis height of 480px.
+  // This preserves curl geometry that phone close-ups otherwise destroy.
+  if(msg) msg.textContent='Isolating hair geometry…';
+
+  const origW=imageEl.naturalWidth||imageEl.width||DW;
+  const origH=imageEl.naturalHeight||imageEl.height||DH;
+  const sx=origW/DW, sy=origH/DH; // detect-space → original-image space
+
+  let crop; // {x, y, w, h} in original pixels
+  if(face640&&face640.detected){
+    const fW  =face640.width*sx;
+    const fTop=face640.top*sy, fBot=face640.bottom*sy;
+    const fL  =face640.left*sx, fR=face640.right*sx;
+    // Generous padding: crown above + mid-lengths below + volume on sides
+    const cTop  =Math.max(0,      fTop - fW*0.55);
+    const cBottom=Math.min(origH, fBot + fW*1.0);
+    const cLeft  =Math.max(0,      fL   - fW*0.65);
+    const cRight =Math.min(origW, fR   + fW*0.65);
+    crop={x:cLeft, y:cTop, w:cRight-cLeft, h:cBottom-cTop};
+  } else {
+    crop={x:0, y:0, w:origW, h:Math.floor(origH*0.65)};
+  }
+
+  // Scale so the hair zone is at least 480px tall
+  const TARGET_H=480;
+  const hairScale=Math.max(1.0, TARGET_H/crop.h);
+  const AW=Math.round(crop.w*hairScale);
+  const AH=Math.round(crop.h*hairScale);
+
+  const ac=document.createElement('canvas'); ac.width=AW; ac.height=AH;
+  // Draw ONLY the hair zone, upscaled, from the original full-resolution image
+  ac.getContext('2d').drawImage(imageEl, crop.x,crop.y,crop.w,crop.h, 0,0,AW,AH);
+
+  const imgData=ac.getContext('2d').getImageData(0,0,AW,AH);
   const pixels=imgData.data;
 
-  const gray=new Float32Array(PW*PH);
-  for(let i=0;i<PW*PH;i++) gray[i]=0.299*pixels[i*4]+0.587*pixels[i*4+1]+0.114*pixels[i*4+2];
+  // Grayscale
+  const gray=new Float32Array(AW*AH);
+  for(let i=0;i<AW*AH;i++) gray[i]=0.299*pixels[i*4]+0.587*pixels[i*4+1]+0.114*pixels[i*4+2];
 
-  const blurred=gaussBlur5(gray,PW,PH);
-  const {mag,ang}=sobelGrad(blurred,PW,PH);
+  const blurred=gaussBlur5(gray,AW,AH);
+  const {mag,ang}=sobelGrad(blurred,AW,AH);
 
-  const allMag=[];
-  for(let i=0;i<mag.length;i++) if(mag[i]>0) allMag.push(mag[i]);
-  allMag.sort((a,b)=>a-b);
-  const p90=allMag[Math.floor(allMag.length*0.90)]||1;
+  // Remap face coordinates into the analysis canvas coordinate space
+  let faceA=null;
+  if(face640&&face640.detected){
+    const fTop_a =Math.max(0,   Math.round((face640.top   *sy - crop.y)*hairScale));
+    const fBot_a =Math.min(AH,  Math.round((face640.bottom*sy - crop.y)*hairScale));
+    const fLeft_a=Math.max(0,   Math.round((face640.left  *sx - crop.x)*hairScale));
+    const fRight_a=Math.min(AW, Math.round((face640.right *sx - crop.x)*hairScale));
+    faceA={top:fTop_a, bottom:fBot_a, left:fLeft_a, right:fRight_a, width:fRight_a-fLeft_a, detected:true};
+  }
+
+  // ── FIX 2: Compute p90 from the CROWN ZONE only ──
+  // Prevents high-contrast faces/backgrounds from inflating the global p90
+  // and suppressing hair gradient magnitudes below the edge threshold.
+  const crownBottom_a=faceA ? faceA.top : Math.floor(AH*0.45);
+  const hairMags=[];
+  for(let y=0;y<crownBottom_a;y++) for(let x=0;x<AW;x++){
+    const m=mag[y*AW+x]; if(m>0) hairMags.push(m);
+  }
+  if(hairMags.length<500){ // Fallback: use full image if crown zone is sparse
+    for(let i=0;i<mag.length;i++) if(mag[i]>0) hairMags.push(mag[i]);
+  }
+  hairMags.sort((a,b)=>a-b);
+  const p90=hairMags[Math.floor(hairMags.length*0.90)]||1;
+
   const magN=new Float32Array(mag.length);
   for(let i=0;i<mag.length;i++) magN[i]=mag[i]*(100/p90);
 
-  // ── MACHINE LEARNING FACE DETECTION ──
-  let face = null, faceMethod = 'Fallback/YCbCr';
-  try {
-    const msg = document.getElementById('scanMsg');
-    if (msg) msg.textContent = 'Locating Facial Landmarks…';
-    
-    const detector = await initDetector();
-    const faces = await detector.estimateFaces(c, { flipHorizontal: false });
-    
-    if (msg) msg.textContent = 'Isolating Hair Geometry…';
+  const THRESH=38;
 
-    if (faces.length > 0) {
-      const b = faces[0].box;
-      face = {
-        top: Math.max(0, Math.round(b.yMin)),
-        bottom: Math.min(PH, Math.round(b.yMax)),
-        left: Math.max(0, Math.round(b.xMin)),
-        right: Math.min(PW, Math.round(b.xMax)),
-        width: Math.round(b.width),
-        peakY: Math.round(b.yMin + b.height * 0.45),
-        detected: true
-      };
-      faceMethod = 'TFJS-MediaPipe';
-    }
-  } catch(e) {
-    console.warn("ML Face Detection skipped/failed, using fallback.", e);
-  }
+  // ── FIX 3: Adaptive patch size from CROWN ZONE HEIGHT ──
+  // Not from face width. Smaller patches preserve local curl angular detail.
+  // Clamped 12–28px so we never average out an entire curl formation.
+  const PATCH=Math.max(12, Math.min(28, Math.round(crownBottom_a/16)));
 
-  // ── FALLBACK ──
-  if(!face || !face.detected) {
-    face = detectFaceRegion(pixels,PW,PH);
-    faceMethod = face ? 'YCbCr-peak' : 'top-38%-fallback';
-  }
+  // Torso exclusion (remapped to analysis canvas coords)
+  const torsoLeft  =faceA ? Math.max(0,  faceA.left  - Math.floor(faceA.width*0.15)) : 0;
+  const torsoRight =faceA ? Math.min(AW, faceA.right + Math.floor(faceA.width*0.15)) : 0;
 
-  let PATCH = face && face.width ? Math.round(face.width/10) : 24;
-  PATCH = Math.max(14, Math.min(38, PATCH));
+  const variances=[];
+  let edgePx=0,totalPx=0,crownEdgePx=0,crownTotalPx=0,midEdgePx=0,midTotalPx=0;
 
-  const THRESH = 38;
-  const variances =[];
-  let edgePx=0, totalPx=0, crownEdgePx=0, crownTotalPx=0, midEdgePx=0, midTotalPx=0;
-
-  // ── SMART CENTER-COLUMN EXCLUSION ──
-  const maxScanY = PH; // Scan all the way down for long side-hair
-  const torsoLeft = face && face.detected ? Math.max(0, face.left - Math.floor(face.width * 0.15)) : 0;
-  const torsoRight = face && face.detected ? Math.min(PW, face.right + Math.floor(face.width * 0.15)) : 0;
-
-  for(let y=0; y<maxScanY-PATCH; y+=PATCH) {
-    for(let x=0; x<PW-PATCH; x+=PATCH) {
-      
-      if(face && face.detected) {
-        // 1. Exclude Face Interior
-        const overlapFaceX = (x+PATCH > face.left) && (x < face.right);
-        const overlapFaceY = (y+PATCH > face.top) && (y < face.bottom);
-        if(overlapFaceY && overlapFaceX) continue;
-        
-        // 2. Exclude Torso / Chest / Clothing
-        const overlapTorsoX = (x+PATCH > torsoLeft) && (x < torsoRight);
-        const overlapTorsoY = (y >= face.bottom);
-        if(overlapTorsoY && overlapTorsoX) continue;
+  for(let y=0;y<AH-PATCH;y+=PATCH){
+    for(let x=0;x<AW-PATCH;x+=PATCH){
+      if(faceA){
+        // Exclude face interior
+        if((x+PATCH>faceA.left)&&(x<faceA.right)&&(y+PATCH>faceA.top)&&(y<faceA.bottom)) continue;
+        // Exclude torso
+        if((x+PATCH>torsoLeft)&&(x<torsoRight)&&(y>=faceA.bottom)) continue;
       }
-
-      const isCrown = face && face.detected ? ((y+PATCH) <= face.top) : ((y+PATCH) <= Math.floor(PH*0.38));
-      
-      let sc=0, ss=0, pe=0;
-      for(let dy=0; dy<PATCH; dy++) {
-        for(let dx=0; dx<PATCH; dx++) {
-          totalPx++;
-          if(isCrown) crownTotalPx++; else midTotalPx++;
-          const idx = (y+dy)*PW + (x+dx);
-          if(magN[idx] > THRESH){
-            pe++; edgePx++;
-            if(isCrown) crownEdgePx++; else midEdgePx++;
-            sc += Math.cos(2*ang[idx]);
-            ss += Math.sin(2*ang[idx]);
-          }
+      const isCrown=faceA ? ((y+PATCH)<=faceA.top) : ((y+PATCH)<=Math.floor(AH*0.45));
+      let sc=0,ss=0,pe=0;
+      for(let dy=0;dy<PATCH;dy++) for(let dx=0;dx<PATCH;dx++){
+        totalPx++; if(isCrown) crownTotalPx++; else midTotalPx++;
+        const idx=(y+dy)*AW+(x+dx);
+        if(magN[idx]>THRESH){
+          pe++; edgePx++;
+          if(isCrown) crownEdgePx++; else midEdgePx++;
+          sc+=Math.cos(2*ang[idx]);
+          ss+=Math.sin(2*ang[idx]);
         }
       }
-      
-      const patchDensity = pe / (PATCH * PATCH);
-      // DENSITY CLAMP: Ignore clean background walls (<12%) and digital artifact noise (>75%)
-      if(patchDensity >= 0.12 && patchDensity <= 0.75) {
-        const R = Math.sqrt(sc*sc + ss*ss) / pe;
-        variances.push({ v: 1-R, crown: isCrown });
+      const patchDensity=pe/(PATCH*PATCH);
+      if(patchDensity>=0.12&&patchDensity<=0.75){
+        const R=Math.sqrt(sc*sc+ss*ss)/pe;
+        variances.push({v:1-R, crown:isCrown});
       }
     }
   }
 
-  // Graceful handling if absolutely no hair is detected
-  if(variances.length < 3) {
-      return {meanVar: 0.55, rawVar: 0.55, edgeDensity: 0.05, patchCount: variances.length, crownMedian: null, midMedian: null, crownCount: 0, midCount: 0, crownEdgeDens: 0, midEdgeDens: 0, midDensRatio: 0, midHasHair: false, PATCH, region: { method: faceMethod }, face, canvas: c, faceMethod, frizzCorrected: false};
+  if(variances.length<3){
+    return {meanVar:0.55,rawVar:0.55,edgeDensity:0.05,patchCount:0,
+      crownMedian:null,midMedian:null,crownCount:0,midCount:0,
+      crownEdgeDens:0,midEdgeDens:0,midDensRatio:0,midHasHair:false,
+      PATCH,face:faceA,canvas:ac,faceMethod,frizzCorrected:false,hairScale,
+      region:{method:faceMethod}};
   }
 
-  const crownEdgeDens = crownTotalPx>0 ? crownEdgePx/crownTotalPx : 0;
-  const midEdgeDens   = midTotalPx>0   ? midEdgePx/midTotalPx     : 0;
+  const crownEdgeDens=crownTotalPx>0 ? crownEdgePx/crownTotalPx : 0;
+  const midEdgeDens  =midTotalPx>0   ? midEdgePx/midTotalPx     : 0;
+  const crownVars=variances.filter(p=>p.crown).map(p=>p.v).sort((a,b)=>a-b);
+  const midVars  =variances.filter(p=>!p.crown).map(p=>p.v).sort((a,b)=>a-b);
+  const allSorted=variances.map(p=>p.v).sort((a,b)=>a-b);
 
-  const crownVars = variances.filter(p=>p.crown).map(p=>p.v).sort((a,b)=>a-b);
-  const midVars   = variances.filter(p=>!p.crown).map(p=>p.v).sort((a,b)=>a-b);
-  const allSorted = variances.map(p=>p.v).sort((a,b)=>a-b);
+  const midDensRatio=crownEdgeDens>0 ? midEdgeDens/crownEdgeDens : 0;
+  const midHasHair  =midVars.length>=8&&midDensRatio>=0.52;
+  const primaryVars =midHasHair ? midVars : (crownVars.length>=4 ? crownVars : allSorted);
+  const rawVar      =primaryVars.length>0 ? primaryVars[Math.floor(primaryVars.length/2)] : 0.55;
+  const crownMedian =crownVars.length>0 ? crownVars[Math.floor(crownVars.length/2)] : null;
+  const midMedian   =midVars.length>0   ? midVars[Math.floor(midVars.length/2)]     : null;
+  const edgeDensity =totalPx>0 ? edgePx/totalPx : 0.10;
 
-  const midDensRatio = crownEdgeDens>0 ? midEdgeDens/crownEdgeDens : 0;
-  const midHasHair   = midVars.length>=8 && midDensRatio>=0.52;
-  const primaryVars  = midHasHair ? midVars : (crownVars.length>=4 ? crownVars : allSorted);
-  const rawVar       = primaryVars.length>0 ? primaryVars[Math.floor(primaryVars.length/2)] : 0.55;
+  // ── FIX 4: GUARDED frizz correction ──
+  // The original correction misfired on dense coily hair shot on phones, because
+  // phone NR reduces edgeDensity artificially → looks like sparse frizz → variance
+  // suppressed by up to 28% → coils classified as waves.
+  // Now we only fire the correction when BOTH crown AND mid regions are genuinely
+  // sparse, ruling out phone-processing artifacts as the cause of low density.
+  const genuinelySparse=crownEdgeDens<0.08&&(midVars.length<5||midEdgeDens<0.06);
+  const densPenalty=genuinelySparse ? Math.max(0,0.11-edgeDensity)/0.11 : 0;
+  const varExcess  =Math.max(0,rawVar-0.60)/0.40;
+  const frizzFactor=genuinelySparse
+    ? 1/(1+Math.exp(-10*(densPenalty*varExcess-0.25)))
+    : 0;
+  const meanVar=rawVar*(1-frizzFactor*0.28);
+  const frizzCorrected=frizzFactor>0.3;
 
-  const crownMedian  = crownVars.length>0 ? crownVars[Math.floor(crownVars.length/2)] : null;
-  const midMedian    = midVars.length>0   ? midVars[Math.floor(midVars.length/2)]     : null;
-  const edgeDensity  = totalPx>0 ? edgePx/totalPx : 0.10;
-
-  const densPenalty = Math.max(0, 0.11 - edgeDensity) / 0.11;          
-  const varExcess   = Math.max(0, rawVar - 0.60) / 0.40;               
-  const frizzFactor = 1 / (1 + Math.exp(-10 * (densPenalty * varExcess - 0.25))); 
-  const meanVar     = rawVar * (1 - frizzFactor * 0.28);               
-  const frizzCorrected = frizzFactor > 0.3;
-
-  return {meanVar, rawVar, edgeDensity, patchCount:variances.length,
-          crownMedian, midMedian, crownCount:crownVars.length, midCount:midVars.length,
-          crownEdgeDens, midEdgeDens, midDensRatio, midHasHair,
-          PATCH, region: { method: faceMethod }, face, canvas:c, faceMethod, frizzCorrected};
+  return {meanVar,rawVar,edgeDensity,patchCount:variances.length,
+    crownMedian,midMedian,crownCount:crownVars.length,midCount:midVars.length,
+    crownEdgeDens,midEdgeDens,midDensRatio,midHasHair,
+    PATCH,face:faceA,canvas:ac,faceMethod,frizzCorrected,hairScale,
+    region:{method:faceMethod}};
 }
 
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// CLASSIFICATION
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function curlTypeFromVariance(v) {
-  if(v < 0.12) return {type:'1',sub:'A',label:'1A',desc:'Straight'};
-  if(v < 0.28) return {type:'1',sub:'B',label:'1B',desc:'Straight'};
-  if(v < 0.45) return {type:'1',sub:'C',label:'1C',desc:'Straight'};
-  if(v < 0.54) return {type:'2',sub:'A',label:'2A',desc:'Wavy'};
-  if(v < 0.62) return {type:'2',sub:'B',label:'2B',desc:'Wavy'};
-  if(v < 0.68) return {type:'2',sub:'C',label:'2C',desc:'Wavy'};
-  if(v < 0.74) return {type:'3',sub:'A',label:'3A',desc:'Curly'};
-  if(v < 0.80) return {type:'3',sub:'B',label:'3B',desc:'Curly'};
-  if(v < 0.86) return {type:'3',sub:'C',label:'3C',desc:'Curly'};
-  if(v < 0.91) return {type:'4',sub:'A',label:'4A',desc:'Coily'};
-  if(v < 0.96) return {type:'4',sub:'B',label:'4B',desc:'Coily'};
-  return              {type:'4',sub:'C',label:'4C',desc:'Coily'};
+  if(v<0.12) return {type:'1',sub:'A',label:'1A',desc:'Straight'};
+  if(v<0.28) return {type:'1',sub:'B',label:'1B',desc:'Straight'};
+  if(v<0.45) return {type:'1',sub:'C',label:'1C',desc:'Straight'};
+  if(v<0.54) return {type:'2',sub:'A',label:'2A',desc:'Wavy'};
+  if(v<0.62) return {type:'2',sub:'B',label:'2B',desc:'Wavy'};
+  if(v<0.68) return {type:'2',sub:'C',label:'2C',desc:'Wavy'};
+  if(v<0.74) return {type:'3',sub:'A',label:'3A',desc:'Curly'};
+  if(v<0.80) return {type:'3',sub:'B',label:'3B',desc:'Curly'};
+  if(v<0.86) return {type:'3',sub:'C',label:'3C',desc:'Curly'};
+  if(v<0.91) return {type:'4',sub:'A',label:'4A',desc:'Coily'};
+  if(v<0.96) return {type:'4',sub:'B',label:'4B',desc:'Coily'};
+  return            {type:'4',sub:'C',label:'4C',desc:'Coily'};
 }
 
 function densityFromEdge(ed) {
@@ -820,15 +847,21 @@ function densityFromEdge(ed) {
   return 'High';
 }
 
+// ── FIX 5: Honest confidence floor ──
+// Original floor was 55% (users could never see a score below 55%).
+// Lowered to 42% so low-quality scans communicate genuine uncertainty.
 function confidenceScore(v, patchCount) {
   const boundaries=[0.12,0.28,0.45,0.54,0.62,0.68,0.74,0.80,0.86,0.91,0.96];
   const minDist=Math.min(...boundaries.map(b=>Math.abs(v-b)));
-  const distScore = Math.min(minDist / 0.08, 1.0);
-  const patchScore = Math.min(patchCount / 50, 1.0);
-  const combined = distScore * 0.70 + patchScore * 0.30;
-  return Math.round(55 + combined * 40);
+  const distScore=Math.min(minDist/0.08,1.0);
+  const patchScore=Math.min(patchCount/50,1.0);
+  const combined=distScore*0.70+patchScore*0.30;
+  return Math.round(42+combined*48); // range: 42–90%
 }
 
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// WATER HARDNESS LOOKUP
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function getWater(pc) {
   const d=pc.replace(/\s/g,'').substring(0,2).toUpperCase();
   const HARD=['EC','WC','SW','SE','E1','N1','NW','W1','W2','SG','AL','LU','MK','NN','PE','CB','IP','NR','CM','OX','RG','GU','KT','CR','BR','DA','ME','CT','TN'];
@@ -838,6 +871,9 @@ function getWater(pc) {
   return {band:'Moderate',label:'Moderate Water',chelating:false};
 }
 
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// PRODUCT CATALOGUE & SCORING
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const PRODS=[
   {id:'c1',name:'Chelate & Clarify Shampoo',brand:'Mane Theory',type:'Cleanser',protein:false,weight:'medium',ingr:['EDTA Chelating Agent','Apple Cider Vinegar','Peppermint Extract','Aloe Vera'],sc:{por:{'Low-P':4,'Normal-P':4,'High-P':4},th:{Fine:3,Medium:4,Coarse:4},sc:{Oily:5,Dry:2,Sensitive:2,Balanced:4},wf:{Brittle:3,Balanced:4,Gummy:4},g:{Moisture:3,Strength:3,Definition:3,'Scalp Health':4,Growth:3},w:{Hard:5,Moderate:3,Soft:2},curl:{'1':3,'2':4,'3':4,'4':5},hist:{d:4,v:3}}},
   {id:'c2',name:'Aloe Cleansing Milk',brand:'Kinfolk Botanicals',type:'Cleanser',protein:false,weight:'light',ingr:['Aloe Vera Juice','Oat Milk','Chamomile Extract','Glycerin'],sc:{por:{'Low-P':5,'Normal-P':4,'High-P':2},th:{Fine:5,Medium:3,Coarse:2},sc:{Oily:2,Dry:4,Sensitive:5,Balanced:3},wf:{Brittle:3,Balanced:4,Gummy:2},g:{Moisture:4,Strength:2,Definition:3,'Scalp Health':4,Growth:3},w:{Hard:2,Moderate:3,Soft:5},curl:{'1':5,'2':4,'3':3,'4':2},hist:{d:3,v:4}}},
@@ -863,58 +899,48 @@ const TOOLS=[
   {name:'Satin-Lined Sleeping Bonnet',brand:'Crown Collective',icon:'bonnet',why:'Eliminates cotton pillowcase friction overnight — the single biggest cause of frizz, breakage, and moisture loss between wash days.',best:['4A','4B','4C','Brittle','High-P','Coily']}
 ];
 
-function toolIconSVG(t) {
+function toolIconSVG(t){
   if(t==='comb') return `<svg width="24" height="24" viewBox="0 0 22 22" fill="none"><path d="M3 8 L19 8 L19 14 L3 14Z" stroke="var(--gold)" stroke-width="1.2"/><line x1="7" y1="8" x2="7" y2="5" stroke="var(--gold)" stroke-width="1.2" stroke-linecap="round"/><line x1="11" y1="8" x2="11" y2="5" stroke="var(--gold)" stroke-width="1.2" stroke-linecap="round"/><line x1="15" y1="8" x2="15" y2="5" stroke="var(--gold)" stroke-width="1.2" stroke-linecap="round"/></svg>`;
-  if(t==='turban') return `<svg width="24" height="24" viewBox="0 0 22 22" fill="none"><path d="M4 13 Q4 7 11 6 Q18 7 18 13" stroke="var(--gold)" stroke-width="1.2"/><path d="M4 13 Q7 17 11 17 Q15 17 18 13" stroke="var(--gold)" stroke-width="1.2"/><path d="M11 6 Q13 9 11 12 Q9 9 11 6Z" fill="rgba(216,203,165,.25)" stroke="var(--gold)" stroke-width="1"/></svg>`;
+  if(t==='turban') return `<svg width="24" height="24" viewBox="0 0 22 22" fill="none"><path d="M4 13 Q4 7 11 6 Q18 7 18 13" stroke="var(--gold)" stroke-width="1.2"/><path d="M4 13 Q7 17 11 17 Q15 17 18 13" stroke="var(--gold)" stroke-width="1.2"/><path d="M11 6 Q13 9 11 12 Q9 9 11 6Z" fill="rgba(107,90,42,.18)" stroke="var(--gold)" stroke-width="1"/></svg>`;
   if(t==='brush') return `<svg width="24" height="24" viewBox="0 0 22 22" fill="none"><rect x="7" y="3" width="8" height="10" rx="4" stroke="var(--gold)" stroke-width="1.2"/><line x1="11" y1="13" x2="11" y2="19" stroke="var(--gold)" stroke-width="1.2" stroke-linecap="round"/><line x1="8" y1="19" x2="14" y2="19" stroke="var(--gold)" stroke-width="1.2" stroke-linecap="round"/></svg>`;
-  return `<svg width="24" height="24" viewBox="0 0 22 22" fill="none"><path d="M6 4 Q4 7 4 11 Q4 17 11 19 Q18 17 18 11 Q18 7 16 4Z" stroke="var(--gold)" stroke-width="1.2"/><path d="M11 4 Q13.5 8 11 12 Q8.5 8 11 4Z" fill="rgba(216,203,165,.2)" stroke="var(--gold)" stroke-width="1"/></svg>`;
+  return `<svg width="24" height="24" viewBox="0 0 22 22" fill="none"><path d="M6 4 Q4 7 4 11 Q4 17 11 19 Q18 17 18 11 Q18 7 16 4Z" stroke="var(--gold)" stroke-width="1.2"/><path d="M11 4 Q13.5 8 11 12 Q8.5 8 11 4Z" fill="rgba(107,90,42,.18)" stroke="var(--gold)" stroke-width="1"/></svg>`;
 }
 
-function scoreProduct(p) {
-  if(S.prot==='Sensitive' && p.protein) return -999;
+function scoreProduct(p){
+  if(S.prot==='Sensitive'&&p.protein) return -999;
   const get=(o,k)=>(o&&o[k]!=null)?o[k]:3;
-
-  const curlCat = S.curl ? S.curl.charAt(0) : null;
-  const curlScore = (p.sc.curl && curlCat) ? (p.sc.curl[curlCat]||3) : 3;
-
-  const damaged = S.hist.some(v=>['Bleached','Relaxed','Heat-Damaged','Colour-Treated'].includes(v));
-  const virgin  = S.hist.includes('Natural') && !damaged;
-  const histScore = p.sc.hist ? (damaged ? p.sc.hist.d : virgin ? p.sc.hist.v : 3) : 3;
-
-  const densMap = {Sparse:1, Medium:3, 'Medium-High':4, High:5};
-  const userDens = densMap[S.density] || 3;
-  const densScore = p.weight==='heavy' ? userDens : p.weight==='light' ? (6-userDens) : 3; 
-
-  return curlScore  * 0.16 +
-         get(p.sc.por,S.por)     * 0.22 +
-         get(p.sc.wf,S.wetfeel)  * 0.18 +
-         get(p.sc.th,S.thick)    * 0.12 +
-         get(p.sc.g,S.goal)      * 0.11 +
-         get(p.sc.w,S.water)     * 0.10 +
-         histScore               * 0.06 +
-         get(p.sc.sc,S.scalp)    * 0.04 +
-         densScore               * 0.01;
+  const curlCat=S.curl?S.curl.charAt(0):null;
+  const curlScore=(p.sc.curl&&curlCat)?(p.sc.curl[curlCat]||3):3;
+  const damaged=S.hist.some(v=>['Bleached','Relaxed','Heat-Damaged','Colour-Treated'].includes(v));
+  const virgin=S.hist.includes('Natural')&&!damaged;
+  const histScore=p.sc.hist?(damaged?p.sc.hist.d:virgin?p.sc.hist.v:3):3;
+  const densMap={Sparse:1,Medium:3,'Medium-High':4,High:5};
+  const userDens=densMap[S.density]||3;
+  const densScore=p.weight==='heavy'?userDens:p.weight==='light'?(6-userDens):3;
+  return curlScore*0.16+get(p.sc.por,S.por)*0.22+get(p.sc.wf,S.wetfeel)*0.18+
+         get(p.sc.th,S.thick)*0.12+get(p.sc.g,S.goal)*0.11+get(p.sc.w,S.water)*0.10+
+         histScore*0.06+get(p.sc.sc,S.scalp)*0.04+densScore*0.01;
 }
 
-function pickProducts() {
+function pickProducts(){
   return['Cleanser','Conditioner','Treatment'].map(type=>{
     const pool=PRODS.filter(p=>p.type===type).map(p=>({...p,score:scoreProduct(p)})).sort((a,b)=>b.score-a.score);
     return pool[0]&&pool[0].score>-999?pool[0]:null;
   }).filter(Boolean);
 }
 
-function pickTool() {
+function pickTool(){
   const prof=[S.curl,S.scalp,S.goal,S.wetfeel,S.por].filter(Boolean);
   let best=TOOLS[0],bestN=0;
   TOOLS.forEach(t=>{const n=t.best.filter(k=>prof.includes(k)).length;if(n>bestN){bestN=n;best=t;}});
   return best;
 }
 
-function whyProduct(p) {
+function whyProduct(p){
   const parts=[];
-  const pm={'Low-P':'lightweight delivery for your sealed cuticle', 'Normal-P':'mid-weight formula for your balanced cuticle', 'High-P':'heavy sealants to lock moisture into your open cuticle'};
+  const pm={'Low-P':'lightweight delivery for your sealed cuticle','Normal-P':'mid-weight formula for your balanced cuticle','High-P':'heavy sealants to lock moisture into your open cuticle'};
   if(pm[S.por]) parts.push(pm[S.por]);
-  const wm={'Brittle':'addresses your brittle wet-feel (protein + moisture depletion)', 'Balanced':'maintains your healthy protein/moisture balance', 'Gummy':'targets your gummy wet-feel (protein structure deficiency)'};
+  const wm={'Brittle':'addresses your brittle wet-feel (protein + moisture depletion)','Balanced':'maintains your healthy protein/moisture balance','Gummy':'targets your gummy wet-feel (protein structure deficiency)'};
   if(wm[S.wetfeel]) parts.push(wm[S.wetfeel]);
   const curlCat=S.curl?S.curl.charAt(0):null;
   if(curlCat==='4'&&p.weight==='heavy') parts.push('rich formula suited to your coily pattern');
@@ -924,65 +950,110 @@ function whyProduct(p) {
   if(damaged&&p.protein) parts.push('protein complex to repair chemically compromised bonds');
   if(damaged&&!p.protein&&p.weight==='heavy') parts.push('intensive moisture for your chemically treated hair');
   if(S.chelating&&p.ingr.some(i=>/edta|citric|chelat/i.test(i))) parts.push('chelating agents to counter your hard water mineral buildup');
-  return parts.length ? parts[0].charAt(0).toUpperCase()+parts[0].slice(1)+ (parts.length>1 ? '. '+parts.slice(1).join('. ')+'.' : '.') : '';
+  return parts.length?parts[0].charAt(0).toUpperCase()+parts[0].slice(1)+(parts.length>1?'. '+parts.slice(1).join('. ')+'.':''):'';}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// DEBUG OVERLAY (light-mode colours + shows crop info)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function drawDebugOverlay(raw){
+  const dbg=document.getElementById('debugCv');
+  if(!raw||!raw.canvas) return;
+  const src=raw.canvas, W=src.width, H=src.height;
+  dbg.width=W; dbg.height=H;
+  const ctx=dbg.getContext('2d');
+  ctx.drawImage(src,0,0);
+
+  // Outer border
+  ctx.strokeStyle='rgba(107,90,42,0.35)'; ctx.lineWidth=1.5;
+  ctx.setLineDash([3,3]); ctx.strokeRect(2,2,W-4,H-4); ctx.setLineDash([]);
+
+  if(raw.face&&raw.face.detected){
+    const f=raw.face;
+    const torsoLeft=Math.max(0,f.left-Math.floor(f.width*0.15));
+    const torsoRight=Math.min(W,f.right+Math.floor(f.width*0.15));
+
+    // Torso exclusion
+    ctx.fillStyle='rgba(40,80,200,0.12)';
+    ctx.fillRect(torsoLeft,f.bottom,torsoRight-torsoLeft,H-f.bottom);
+    ctx.strokeStyle='rgba(40,80,180,0.35)'; ctx.lineWidth=1.2;
+    ctx.strokeRect(torsoLeft,f.bottom,torsoRight-torsoLeft,H-f.bottom);
+    ctx.fillStyle='rgba(40,80,180,0.7)'; ctx.font='bold 11px system-ui';
+    ctx.fillText('torso excluded',torsoLeft+6,f.bottom+14);
+
+    // Face exclusion
+    ctx.fillStyle='rgba(180,40,40,0.12)';
+    ctx.fillRect(f.left,f.top,f.right-f.left,f.bottom-f.top);
+    ctx.setLineDash([4,3]); ctx.strokeStyle='rgba(160,40,40,0.4)'; ctx.lineWidth=1.2;
+    ctx.strokeRect(f.left,f.top,f.right-f.left,f.bottom-f.top); ctx.setLineDash([]);
+    ctx.fillStyle='rgba(160,40,40,0.75)'; ctx.font='bold 11px system-ui';
+    ctx.fillText('face excluded',f.left+6,f.top+14);
+
+    if(f.top>14){ctx.fillStyle='rgba(107,90,42,0.8)';ctx.font='bold 11px system-ui';ctx.fillText('crown',6,f.top-6);}
+    if(f.bottom<H-12){ctx.fillStyle='rgba(40,130,70,0.8)';ctx.font='bold 11px system-ui';ctx.fillText('side lengths',6,f.bottom+28);}
+    ctx.setLineDash([5,3]); ctx.strokeStyle='rgba(107,90,42,0.4)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(0,f.top); ctx.lineTo(W,f.top); ctx.stroke(); ctx.setLineDash([]);
+  } else {
+    ctx.fillStyle='rgba(107,90,42,0.6)'; ctx.font='bold 11px system-ui';
+    ctx.fillText('analysed (no face detected)',6,H-8);
+  }
 }
 
-// ── UI NAVIGATION ──
-function go(n) {
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// UI FLOW
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function go(n){
   document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
   document.getElementById('s'+n).classList.add('active');
   S.step=n;
   const pw=document.getElementById('progressWrap');
-  if(n===0){pw.style.display='none'; return;}
+  if(n===0){pw.style.display='none';return;}
   pw.style.display='block';
   const pct=Math.round(((n-1)/8)*100);
   document.getElementById('progressFill').style.width=Math.min(pct,100)+'%';
   document.getElementById('stepName').textContent=STEP_NAMES[n]||'';
   document.getElementById('stepCount').textContent=n<=8?`${n} of 8`:'';
-  
-  const backBtn=document.getElementById('backBtn');
-  if(backBtn) backBtn.style.display=(n>=2&&n<=8)?'block':'none';
-  
+  const bb=document.getElementById('backBtn');
+  if(bb) bb.style.display=(n>=2&&n<=8)?'block':'none';
   document.querySelector('.content-scroll').scrollTo({top:0,behavior:'smooth'});
 }
 
-function goBack() {
+function goBack(){
   const n=S.step;
-  if(n>2) { go(n-1); return; }
-  if(n===2) {
+  if(n>2){go(n-1);return;}
+  if(n===2){
     document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
-    document.getElementById('s1').classList.add('active');
-    S.step=1;
+    document.getElementById('s1').classList.add('active'); S.step=1;
     document.getElementById('phG').style.display='none';
     document.getElementById('phS').style.display='none';
     document.getElementById('phR').style.display='flex';
     document.getElementById('progressFill').style.width='0%';
     document.getElementById('stepName').textContent='Scan';
     document.getElementById('stepCount').textContent='1 of 8';
-    const backBtn=document.getElementById('backBtn');
-    if(backBtn) backBtn.style.display='none';
+    const bb=document.getElementById('backBtn'); if(bb) bb.style.display='none';
     document.querySelector('.content-scroll').scrollTo({top:0,behavior:'smooth'});
   }
 }
 
-function sel(el,field,val) {
+function sel(el,field,val){
   el.closest('.tiles').querySelectorAll('.tile').forEach(t=>t.classList.remove('sel'));
   el.classList.add('sel'); S[field]=val;
   const b=el.closest('.step').querySelector('.cta[id^=b]');
-  if(b)b.disabled=false;
+  if(b) b.disabled=false;
 }
-function selCard(el,field,val) {
+function selCard(el,field,val){
   document.querySelectorAll('#s8 .tile-card').forEach(t=>t.classList.remove('sel'));
   el.classList.add('sel'); S[field]=val;
   document.getElementById('b8').disabled=false;
 }
-function togChip(el,val) {
+function togChip(el,val){
   el.classList.toggle('sel');
   S.hist=el.classList.contains('sel')?[...S.hist,val]:S.hist.filter(v=>v!==val);
   document.getElementById('b6').disabled=S.hist.length===0;
 }
 
-// ── PHOTO & SCANNING ──
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// PHOTO & SCANNING
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 document.getElementById('phInput').addEventListener('change',function(e){
   const file=e.target.files[0]; if(!file) return;
   const reader=new FileReader();
@@ -1001,24 +1072,24 @@ document.getElementById('phInput').addEventListener('change',function(e){
   reader.readAsDataURL(file);
 });
 
-function onPostcodeInput(val) {
-  const clean = val.replace(/\s/g,'').toUpperCase();
-  if(clean.length >= 2) {
-    const w = getWater(clean);
-    S.water = w.band; S.waterLabel = w.label; S.chelating = w.chelating;
-    document.getElementById('waterTxt').textContent = w.label;
-    document.getElementById('rcWaterVal').textContent = w.band;
-    document.getElementById('rcWaterSub').textContent = w.chelating ? 'Chelating agents prescribed' : 'Standard formulas';
-    document.getElementById('continueBtn').disabled = false;
+function onPostcodeInput(val){
+  const clean=val.replace(/\s/g,'').toUpperCase();
+  if(clean.length>=2){
+    const w=getWater(clean);
+    S.water=w.band; S.waterLabel=w.label; S.chelating=w.chelating;
+    document.getElementById('waterTxt').textContent=w.label;
+    document.getElementById('rcWaterVal').textContent=w.band;
+    document.getElementById('rcWaterSub').textContent=w.chelating?'Chelating agents prescribed':'Standard formulas';
+    document.getElementById('continueBtn').disabled=false;
   } else {
-    document.getElementById('continueBtn').disabled = true;
-    document.getElementById('waterTxt').textContent = 'Awaiting Postcode…';
-    document.getElementById('rcWaterVal').textContent = '—';
-    document.getElementById('rcWaterSub').textContent = 'Enter below to detect';
+    document.getElementById('continueBtn').disabled=true;
+    document.getElementById('waterTxt').textContent='Awaiting Postcode…';
+    document.getElementById('rcWaterVal').textContent='—';
+    document.getElementById('rcWaterSub').textContent='Enter below to detect';
   }
 }
 
-function resetPhoto() {
+function resetPhoto(){
   S.photoImg=null;
   document.getElementById('phPrev').style.display='none';
   document.getElementById('upzone').style.display='block';
@@ -1027,69 +1098,85 @@ function resetPhoto() {
   document.getElementById('phInput').value='';
 }
 
-// Add a global detector cache so we don't redownload the model if the user uploads a second photo
-let faceDetectorInstance = null;
-
-async function initDetector() {
-  if (faceDetectorInstance) return faceDetectorInstance;
-  if (typeof faceDetection === 'undefined') throw new Error("TFJS Library not loaded yet.");
-  
-  const model = faceDetection.SupportedModels.MediaPipeFaceDetector;
-  const detectorConfig = { runtime: 'tfjs', maxFaces: 1 };
-  faceDetectorInstance = await faceDetection.createDetector(model, detectorConfig);
+let faceDetectorInstance=null;
+async function initDetector(){
+  if(faceDetectorInstance) return faceDetectorInstance;
+  if(typeof faceDetection==='undefined') throw new Error('TFJS not loaded');
+  const model=faceDetection.SupportedModels.MediaPipeFaceDetector;
+  faceDetectorInstance=await faceDetection.createDetector(model,{runtime:'tfjs',maxFaces:1});
   return faceDetectorInstance;
 }
 
-function startScan() {
-  document.getElementById('phG').style.display = 'none';
-  document.getElementById('phS').style.display = 'flex';
-  const msg = document.getElementById('scanMsg');
-  msg.textContent = 'Initializing Neural Network…';
-  
-  if (!S.photoImg) {
-    resetPhoto();
-    return;
-  }
-
-  // We use a small timeout to allow the browser to paint the loading UI 
-  // BEFORE TensorFlow begins compiling its WebGL shaders (which momentarily locks the main thread).
-  setTimeout(() => {
-    
-    // 1. Run the Analysis
+function startScan(){
+  document.getElementById('phG').style.display='none';
+  document.getElementById('phS').style.display='flex';
+  document.getElementById('scanMsg').textContent='Initialising neural network…';
+  if(!S.photoImg){resetPhoto();return;}
+  setTimeout(()=>{
     analyseHair(S.photoImg)
-      .then(result => {
-        msg.textContent = 'Mapping Final Profile…';
-        
-        // 2. Small delay for UX flow, then show results
-        setTimeout(() => {
-          const ct = curlTypeFromVariance(result.meanVar);
-          const dens = densityFromEdge(result.edgeDensity);
-          const conf = confidenceScore(result.meanVar, result.patchCount);
-          
-          S.curl = ct.label; 
-          S.density = dens; 
-          S.curlVariance = result.meanVar;
-          
-          showScanResult(ct, dens, conf, result);
-        }, 800);
+      .then(result=>{
+        document.getElementById('scanMsg').textContent='Mapping final profile…';
+        setTimeout(()=>{
+          const ct=curlTypeFromVariance(result.meanVar);
+          const dens=densityFromEdge(result.edgeDensity);
+          const conf=confidenceScore(result.meanVar,result.patchCount);
+          S.curl=ct.label; S.density=dens; S.curlVariance=result.meanVar;
+          showScanResult(ct,dens,conf,result);
+        },800);
       })
-      .catch(err => {
-        // 3. Robust Error Catching (Prevents the infinite hang)
-        console.error("Scan Pipeline Error:", err);
-        msg.textContent = 'Analysis Failed. Please try another photo.';
-        
-        // Reset back to upload screen after 3 seconds
-        setTimeout(() => {
+      .catch(err=>{
+        console.error('Scan pipeline error:',err);
+        document.getElementById('scanMsg').textContent='Analysis failed. Please try another photo.';
+        setTimeout(()=>{
           resetPhoto();
-          document.getElementById('phS').style.display = 'none';
-          document.getElementById('phG').style.display = 'flex';
-        }, 3000);
+          document.getElementById('phS').style.display='none';
+          document.getElementById('phG').style.display='flex';
+        },3000);
       });
-      
-  }, 150);
+  },150);
 }
 
-function startCurating() {
+function showScanResult(ct,dens,conf,raw){
+  document.getElementById('phS').style.display='none';
+  document.getElementById('phR').style.display='flex';
+  document.getElementById('rcCurlVal').textContent=ct.label;
+  document.getElementById('rcCurlConf').textContent=`${conf}% Confidence`;
+  document.getElementById('rcDensVal').textContent=dens;
+  S.water='Hard'; S.waterLabel='Hard Water'; S.chelating=true;
+  document.getElementById('waterTxt').textContent='Awaiting Postcode…';
+  document.getElementById('rcWaterVal').textContent='—';
+  document.getElementById('rcWaterSub').textContent='Enter below to detect';
+  drawDebugOverlay(raw);
+
+  const confLabel=conf>=80?'High':conf>=65?'Moderate':'Low';
+  const faceNote=raw.face?`${raw.faceMethod||'detected'} · `:'No face detected · ';
+  const scaleNote=raw.hairScale>1.05
+    ?`<span style="color:rgba(40,130,70,0.8)">Hair zone ×${raw.hairScale.toFixed(1)} upscaled · </span>`:'';
+  const patchNote=`Patch ${raw.PATCH}px`;
+  const frizzNote=raw.frizzCorrected
+    ?` · <span style="color:rgba(160,90,20,0.85)">frizz guard applied (raw ${raw.rawVar!=null?raw.rawVar.toFixed(3):'?'})</span>`:'';
+  const crownNote=raw.crownMedian!=null?`Crown: <strong style="color:var(--text)">${raw.crownMedian.toFixed(3)}</strong> (${raw.crownCount}p)`:'';
+  const midNote=raw.midMedian!=null?`Mid: <strong style="color:rgba(40,130,70,0.9)">${raw.midMedian.toFixed(3)}</strong> (${raw.midCount}p)`:'';
+  const primaryNote=raw.midHasHair
+    ?`<span style="color:rgba(40,130,70,0.8)">← mid-length primary (ratio ${raw.midDensRatio!=null?raw.midDensRatio.toFixed(2):'?'})</span>`
+    :raw.midCount>=8
+    ?`<span style="color:rgba(160,90,20,0.85)">← crown primary (mid rejected: ratio ${raw.midDensRatio!=null?raw.midDensRatio.toFixed(2):'?'} < 0.52)</span>`
+    :`<span style="color:rgba(107,90,42,0.45)">← crown primary (short hair)</span>`;
+
+  document.getElementById('cvDetail').innerHTML=
+    `<strong style="color:var(--gold);font-size:11px;text-transform:uppercase;letter-spacing:.1em">CV Analysis</strong> · `+
+    `<span style="color:rgba(107,90,42,0.45)">${raw.region?raw.region.method:''}</span><br>`+
+    `${scaleNote}${faceNote}${patchNote}<br>`+
+    `${[crownNote,midNote].filter(Boolean).join(' · ')} ${primaryNote}<br>`+
+    `Variance: <strong style="color:var(--text)">${raw.meanVar.toFixed(3)}</strong>${frizzNote} `+
+    `<span style="color:rgba(107,90,42,0.35)">(1A&lt;0.12 · 1C&lt;0.45 · 2B&lt;0.54 · 3A&lt;0.68 · 4A&lt;0.91)</span><br>`+
+    `Patches: <strong style="color:var(--text)">${raw.patchCount}</strong> · `+
+    `Edge density: <strong style="color:var(--text)">${(raw.edgeDensity*100).toFixed(1)}%</strong><br>`+
+    `Confidence: <strong style="color:var(--text)">${confLabel} (${conf}%)</strong>`;
+  S.scanDone=true;
+}
+
+function startCurating(){
   go(9);
   const msg=document.getElementById('curMsg');
   const msgs=['Isolating algorithms…','Scoring ingredient matrix…','Finalising prescription…'];
@@ -1100,97 +1187,7 @@ function startCurating() {
   },800);
 }
 
-function drawDebugOverlay(raw) {
-  const dbg=document.getElementById('debugCv');
-  if(!raw||!raw.canvas) return;
-  const src=raw.canvas, W=src.width, H=src.height;
-  dbg.width=W; dbg.height=H;
-  const ctx=dbg.getContext('2d');
-  ctx.drawImage(src,0,0);
-  
-  ctx.strokeStyle='rgba(216, 203, 165,.4)'; ctx.lineWidth=1.5;
-  ctx.setLineDash([3,3]); ctx.strokeRect(2,2,W-4,H-4); ctx.setLineDash([]);
-  
-  if(raw.face && raw.face.detected) {
-    const f = raw.face;
-    
-    // 1. Draw Torso Exclusion Box
-    const torsoLeft = Math.max(0, f.left - Math.floor(f.width * 0.15));
-    const torsoRight = Math.min(W, f.right + Math.floor(f.width * 0.15));
-    
-    ctx.fillStyle = 'rgba(60,60,200,0.15)';
-    ctx.fillRect(torsoLeft, f.bottom, torsoRight - torsoLeft, H - f.bottom);
-    ctx.strokeStyle = 'rgba(80,80,200,0.4)'; ctx.lineWidth = 1.2;
-    ctx.strokeRect(torsoLeft, f.bottom, torsoRight - torsoLeft, H - f.bottom);
-    ctx.fillStyle = 'rgba(80,80,200,0.75)'; ctx.font = 'bold 11px system-ui';
-    ctx.fillText('torso excluded', torsoLeft + 6, f.bottom + 14);
-
-    // 2. Draw Face Exclusion Box
-    ctx.fillStyle = 'rgba(200,60,60,0.22)';
-    ctx.fillRect(f.left, f.top, f.right - f.left, f.bottom - f.top);
-    ctx.setLineDash([4,3]); ctx.strokeStyle = 'rgba(200,80,80,0.55)'; ctx.lineWidth = 1.2;
-    ctx.strokeRect(f.left, f.top, f.right - f.left, f.bottom - f.top); ctx.setLineDash([]);
-    ctx.fillStyle = 'rgba(200,80,80,0.75)'; ctx.font = 'bold 11px system-ui';
-    ctx.fillText('face excluded', f.left + 6, f.top + 14);
-
-    // Guide texts
-    if(f.top > 14) {
-        ctx.fillStyle='rgba(216, 203, 165,.75)'; ctx.font='bold 11px system-ui';
-        ctx.fillText('crown', 6, f.top - 6);
-    }
-    if(f.bottom < H - 12) {
-        ctx.fillStyle='rgba(130,200,130,.75)'; ctx.font='bold 11px system-ui';
-        ctx.fillText('side lengths', 6, f.bottom + 28);
-    }
-    
-    ctx.setLineDash([5,3]); ctx.strokeStyle='rgba(216, 203, 165,.5)'; ctx.lineWidth=1;
-    ctx.beginPath(); ctx.moveTo(0,f.top); ctx.lineTo(W,f.top); ctx.stroke(); ctx.setLineDash([]);
-    
-  } else {
-    ctx.fillStyle='rgba(216, 203, 165,.6)'; ctx.font='bold 11px system-ui';
-    ctx.fillText('analysed (no face detected)',6,H-8);
-  }
-}
-
-function showScanResult(ct,dens,conf,raw) {
-  document.getElementById('phS').style.display='none';
-  document.getElementById('phR').style.display='flex';
-  document.getElementById('rcCurlVal').textContent=ct.label;
-  document.getElementById('rcCurlConf').textContent=`${conf}% Confidence`;
-  document.getElementById('rcDensVal').textContent=dens;
-  
-  S.water='Hard'; S.waterLabel='Hard Water'; S.chelating=true;
-  document.getElementById('waterTxt').textContent='Awaiting Postcode…';
-  document.getElementById('rcWaterVal').textContent='—';
-  document.getElementById('rcWaterSub').textContent='Enter below to detect';
-  drawDebugOverlay(raw);
-  
-  const confLabel=conf>=80?'High':conf>=65?'Moderate':'Low';
-  const faceNote=raw.face?`${raw.faceMethod||'detected'} · `: `No face detected · `;
-  const patchNote=`Patch ${raw.PATCH||24}px`;
-  const frizzNote=raw.frizzCorrected?` · <span style="color:rgba(220,150,80,.8)">frizz correction applied (raw ${raw.rawVar!=null?raw.rawVar.toFixed(3):'?'})</span>`:'';
-  const crownNote=raw.crownMedian!=null?`Crown: <strong style="color:var(--text)">${raw.crownMedian.toFixed(3)}</strong> (${raw.crownCount}p)`:'';
-  const midNote=raw.midMedian!=null?`Mid: <strong style="color:rgba(130,200,130,.9)">${raw.midMedian.toFixed(3)}</strong> (${raw.midCount}p)`:'';
-  const primaryNote=raw.midHasHair
-    ?`<span style="color:rgba(130,200,130,.8)">← mid-length primary (ratio ${raw.midDensRatio!=null?raw.midDensRatio.toFixed(2):'?'})</span>`
-    :raw.midCount>=8
-    ?`<span style="color:rgba(220,150,80,.8)">← crown primary (mid rejected: ratio ${raw.midDensRatio!=null?raw.midDensRatio.toFixed(2):'?'} < 0.52)</span>`
-    :`<span style="color:rgba(216, 203, 165,.5)">← crown primary (short hair)</span>`;
-    
-  document.getElementById('cvDetail').innerHTML=
-    `<strong style="color:var(--gold);font-size:11px;text-transform:uppercase;letter-spacing:.1em">CV Analysis</strong> · `+
-    `<span style="color:rgba(216, 203, 165,.5)">${raw.region?raw.region.method:''}</span><br>`+
-    `${faceNote}${patchNote}<br>`+
-    `${[crownNote,midNote].filter(Boolean).join(' · ')} ${primaryNote}<br>`+
-    `Variance: <strong style="color:var(--text)">${raw.meanVar.toFixed(3)}</strong>${frizzNote} `+
-    `<span style="color:rgba(216, 203, 165,.38)">(1A<0.12 · 1C<0.45 · 2B<0.54 · 3A<0.68 · 4A<0.91)</span><br>`+
-    `Patches Analyzed: <strong style="color:var(--text)">${raw.patchCount}</strong> (Strict density clamped) · `+
-    `Edge density: <strong style="color:var(--text)">${(raw.edgeDensity*100).toFixed(1)}%</strong><br>`+
-    `Confidence: <strong style="color:var(--text)">${confLabel} (${conf}%)</strong>`;
-  S.scanDone=true;
-}
-
-function buildResult() {
+function buildResult(){
   go(10);
   const pm={'Low-P':'Low Porosity','Normal-P':'Normal Porosity','High-P':'High Porosity'};
   const wm={'Brittle':'Brittle Wet-Feel','Balanced':'Elastic Wet-Feel','Gummy':'Protein-Deficient'};
@@ -1205,7 +1202,7 @@ function buildResult() {
   const pg=document.getElementById('pGrid');
   pg.innerHTML='';
   prods.forEach((p,i)=>{
-    const d=document.createElement('div');d.className='pcard';
+    const d=document.createElement('div'); d.className='pcard';
     d.innerHTML=`<div class="pcard-brand">${p.brand}</div><div class="pcard-type">${p.type}</div><div class="pcard-name">${p.name}</div><div class="pcard-ingr">${p.ingr.join(' · ')}</div><div class="pcard-why">${whyProduct(p)}</div>`;
     pg.appendChild(d);
     setTimeout(()=>d.classList.add('vis'),segs.length*100+i*150+400);
